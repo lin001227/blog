@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/articles/**").permitAll()
+                        .requestMatchers("/api/external-articles/**").permitAll()
                         .requestMatchers("/api/comments/**").permitAll()
                         .requestMatchers("/api/rss").permitAll()
                         .requestMatchers("/api/admin/users/**").hasRole("ADMIN")

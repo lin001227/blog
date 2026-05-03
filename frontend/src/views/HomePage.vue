@@ -285,11 +285,11 @@ async function subscribe() {
 
 /* Main Layout */
 .main-layout {
-  max-width: 960px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px 40px;
   display: flex;
-  gap: 32px;
+  gap: 40px;
   align-items: flex-start;
 }
 .content {
@@ -322,26 +322,32 @@ async function subscribe() {
 
 /* Article Cards */
 .article-card {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.25s ease;
+  border-radius: 10px !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 .article-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover) !important;
+  border-color: var(--text-accent) !important;
 }
 .article-card :deep(.el-card__header) {
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--el-border-color-light);
+  padding: 20px 24px 12px;
+  border-bottom: none;
 }
 .article-card :deep(.el-card__body) {
-  padding: 12px 20px;
+  padding: 6px 24px 14px;
 }
 .article-card :deep(.el-card__footer) {
-  padding: 8px 20px 12px;
-  border-top: 1px solid var(--el-border-color-light);
+  padding: 4px 24px 18px;
+  border-top: 1px solid var(--border);
 }
 .pinned-card {
-  border-left: 3px solid var(--el-color-primary);
+  border-left: 3px solid var(--text-accent) !important;
 }
 .article-card-header {
   display: flex;
@@ -382,13 +388,16 @@ async function subscribe() {
 /* Sidebar */
 .sidebar-card {
   margin-bottom: 0;
+  border-radius: 10px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-card) !important;
 }
 .sidebar-card :deep(.el-card__header) {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
 }
 .sidebar-card :deep(.el-card__body) {
-  padding: 12px 16px;
+  padding: 12px 20px 18px;
 }
 .sidebar-title {
   font-weight: 600;

@@ -6,6 +6,7 @@
         <div class="public-nav">
           <router-link to="/" class="public-nav-link" :class="{ active: $route.path === '/' }">首页</router-link>
           <router-link to="/archive" class="public-nav-link" :class="{ active: $route.path === '/archive' }">归档</router-link>
+          <router-link to="/readings" class="public-nav-link" :class="{ active: $route.path === '/readings' }">阅读</router-link>
           <router-link to="/admin/login" class="public-nav-link">管理</router-link>
           <DarkToggle />
         </div>

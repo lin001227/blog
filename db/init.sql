@@ -25,6 +25,25 @@ INSERT INTO admin_user (username, password, display_name)
 SELECT 'admin', '$2a$12$q8wgvY5tABE9x/ZUU0Fv/eLb2RQeEgq1gIm3R59VMPHDTLsF5h27G', '管理员'
 WHERE NOT EXISTS (SELECT 1 FROM admin_user WHERE username = 'admin');
 
+CREATE TABLE IF NOT EXISTS external_article (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    url VARCHAR(1024) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    source VARCHAR(100) DEFAULT '',
+    cover_url VARCHAR(512) DEFAULT '',
+    summary TEXT,
+    original_content MEDIUMTEXT,
+    summary_type VARCHAR(20) DEFAULT 'ai',
+    category VARCHAR(50) DEFAULT '',
+    tags VARCHAR(255) DEFAULT '',
+    fetched_at DATETIME,
+    published_at DATETIME,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    error_msg VARCHAR(500),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 示例文章
 INSERT INTO article (title, content, category, tags, pinned, created_at) VALUES
 ('从零搭建个人博客：我的技术栈选择', '这是博客的第一篇文章。很高兴能在这个新家与你相遇。\n\n## 为什么重写博客\n\n之前的博客用了 WordPress，虽然功能强大但总觉得太重了。这次决定从零写一个，轻量、可控、好玩。', '杂谈', '博客,Spring Boot,Vue', TRUE, '2026-04-30 10:00:00'),

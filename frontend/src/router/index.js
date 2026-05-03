@@ -20,6 +20,11 @@ const routes = [
         name: 'Archive',
         component: () => import('../views/Archive.vue'),
       },
+      {
+        path: 'readings',
+        name: 'ExternalReadings',
+        component: () => import('../views/ExternalReadings.vue'),
+      },
     ],
   },
   {
@@ -74,6 +79,11 @@ const routes = [
         path: 'comments',
         name: 'CommentList',
         component: () => import('../views/admin/CommentList.vue'),
+      },
+      {
+        path: 'external-articles',
+        name: 'ExternalArticleManager',
+        component: () => import('../views/admin/ExternalArticleManager.vue'),
       },
     ],
   },

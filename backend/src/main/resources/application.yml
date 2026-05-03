@@ -20,3 +20,9 @@ app:
   jwt:
     secret: "Y29vbC1ibG9nLWp3dC1zZWNyZXQta2V5LWZvci1ibG9nLWFwcC0yMDI2LXByb2R1Y3Rpb24t"
     expiration-ms: 86400000  # 24 hours
+
+  deepseek:
+    api-key: sk-7f067f28aeeb4b4b8cccf2dacf915a45
+    api-url: https://api.deepseek.com/v1/chat/completions
+    model: deepseek-v4-flash
+    max-tokens: 300
