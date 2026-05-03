@@ -3,17 +3,24 @@ import { ref, watch, onMounted } from 'vue'
 const isDark = ref(false)
 const isInitialized = ref(false)
 
-function applyTheme(dark) {
+function applyTheme(dark, animate = false) {
+  const html = document.documentElement
+  if (animate) {
+    html.classList.add('theme-transitioning')
+  }
   if (dark) {
-    document.documentElement.classList.add('dark')
+    html.classList.add('dark')
   } else {
-    document.documentElement.classList.remove('dark')
+    html.classList.remove('dark')
   }
   isDark.value = dark
+  if (animate) {
+    setTimeout(() => html.classList.remove('theme-transitioning'), 500)
+  }
 }
 
 function toggleDark() {
-  applyTheme(!isDark.value)
+  applyTheme(!isDark.value, true)
   localStorage.setItem('blog-dark-mode', isDark.value ? 'dark' : 'light')
 }
 

@@ -10,9 +10,7 @@
           <a class="nav-link" href="#">标签</a>
           <a class="nav-link" href="#">关于</a>
           <router-link class="nav-link" to="/admin/login">管理</router-link>
-          <button class="dark-toggle" @click="toggleDark" :title="isDark ? '切换亮色模式' : '切换暗色模式'">
-            {{ isDark ? '☀️' : '🌙' }}
-          </button>
+          <DarkToggle />
         </div>
       </div>
     </nav>
@@ -36,6 +34,21 @@
             <span class="tag" v-for="tag in tagsList" :key="tag">{{ tag }}</span>
           </div>
 
+          <!-- Mobile TOC -->
+          <div class="mobile-toc" v-if="tocItems.length > 0">
+            <button class="mobile-toc-toggle" @click="showMobileToc = !showMobileToc">
+              📑 目录 <span class="toc-toggle-arrow" :class="{ open: showMobileToc }">▼</span>
+            </button>
+            <nav class="mobile-toc-nav" v-show="showMobileToc">
+              <a
+                v-for="(item, i) in tocItems" :key="i"
+                :href="'#' + item.id"
+                :class="['toc-link', 'toc-level-' + item.level]"
+                @click.prevent="scrollToHeading(item.id); showMobileToc = false"
+              >{{ item.text }}</a>
+            </nav>
+          </div>
+
           <div class="article-content" v-html="contentWithAnchors"></div>
         </article>
 
@@ -43,15 +56,14 @@
           <router-link to="/" class="back-link">← 返回首页</router-link>
         </div>
 
-        <!-- TOC Sidebar (Desktop) -->
+        <!-- Desktop TOC Sidebar -->
         <aside class="toc-sidebar" v-if="tocItems.length > 0">
-          <div class="toc-title">目录</div>
+          <div class="toc-title">📑 目录</div>
           <nav class="toc-nav">
             <a
-              v-for="(item, i) in tocItems"
-              :key="i"
+              v-for="(item, i) in tocItems" :key="i"
               :href="'#' + item.id"
-              :class="['toc-link', 'toc-level-' + item.level]"
+              :class="['toc-link', 'toc-level-' + item.level, { active: activeTocId === item.id }]"
               @click.prevent="scrollToHeading(item.id)"
             >{{ item.text }}</a>
           </nav>
@@ -107,21 +119,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { getArticle } from '../api/articles'
 import { getArticleComments, createComment } from '../api/comments'
-import { useDarkMode } from '../composables/useDarkMode'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
+import DarkToggle from '../components/DarkToggle.vue'
 
 // Configure marked for better rendering
 marked.setOptions({
   breaks: true,
   gfm: true,
 })
-
-const { isDark, toggleDark } = useDarkMode()
 
 const route = useRoute()
 const article = ref(null)
@@ -227,6 +237,33 @@ function scrollToHeading(id) {
   }
 }
 
+// --- Active TOC tracking ---
+const activeTocId = ref('')
+const showMobileToc = ref(false)
+let tocObserver = null
+
+function setupTocObserver() {
+  // Wait for DOM to render headings with IDs
+  nextTick(() => {
+    const headings = document.querySelectorAll('.article-content h1, .article-content h2, .article-content h3')
+    if (headings.length === 0) return
+
+    tocObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          activeTocId.value = entry.target.id
+        }
+      }
+    }, { rootMargin: '-80px 0px -60% 0px' })
+
+    headings.forEach(h => tocObserver.observe(h))
+  })
+}
+
+onBeforeUnmount(() => {
+  if (tocObserver) tocObserver.disconnect()
+})
+
 const COLORS = ['#f56a00','#7265e6','#ffbf00','#00a854','#108ee9','#cd5c5c','#7b68ee','#20b2aa','#ff6347','#9370db','#3cb371','#ff8c00','#48d1cc','#c71585','#2e8b57','#d2691e','#6495ed','#dc143c','#00ced1','#daa520']
 
 function nameColor(name) {
@@ -275,6 +312,7 @@ onMounted(async () => {
     article.value = articleRes.data
     comments.value = commentsRes.data || []
     updateMetaTags(article.value)
+    setupTocObserver()
   } catch (e) {
     console.error('Failed to load:', e)
   } finally {
@@ -334,27 +372,7 @@ onMounted(async () => {
   color: var(--text-primary);
 }
 
-/* Dark mode toggle */
-.dark-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s;
-  line-height: 1;
-  padding: 0;
-}
-.dark-toggle:hover {
-  color: var(--text-accent);
-  border-color: var(--text-accent);
-}
+
 
 /* Main */
 .main {
@@ -580,40 +598,41 @@ onMounted(async () => {
   color: var(--text-body);
 }
 
-/* TOC Sidebar */
+/* TOC Sidebar (Desktop) */
 .toc-sidebar {
   position: fixed;
   top: 50%;
-  right: max(calc((100vw - 740px) / 2 - 280px), 16px);
+  right: max(calc((100vw - 740px) / 2 - 280px), 20px);
   transform: translateY(-50%);
-  width: 220px;
+  width: 210px;
   max-height: 70vh;
   overflow-y: auto;
   background: var(--bg-card);
-  border-radius: 8px;
-  padding: 16px 0;
-  box-shadow: var(--shadow-card);
-  transition: background 0.3s ease;
+  border-radius: 10px;
+  padding: 14px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border: 1px solid var(--border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+  z-index: 50;
 }
+.toc-sidebar::-webkit-scrollbar { width: 3px; }
+.toc-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .toc-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   padding: 0 16px 10px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   font-family: 'Noto Serif SC', serif;
 }
-.toc-nav {
-  display: flex;
-  flex-direction: column;
-}
+.toc-nav { display: flex; flex-direction: column; }
 .toc-link {
   display: block;
   font-size: 13px;
   color: var(--text-secondary);
   text-decoration: none;
-  padding: 5px 16px;
+  padding: 4px 16px;
   border-left: 2px solid transparent;
   transition: all 0.15s;
   line-height: 1.5;
@@ -622,14 +641,58 @@ onMounted(async () => {
 .toc-link:hover {
   color: var(--text-accent);
   background: var(--bg-toc-hover);
+}
+.toc-link.active {
+  color: var(--text-accent);
   border-left-color: var(--text-accent);
+  font-weight: 500;
+  background: var(--bg-toc-hover);
 }
 .toc-level-2 { padding-left: 26px; font-size: 12.5px; }
 .toc-level-3 { padding-left: 36px; font-size: 12px; }
 
-/* Hide TOC on narrow screens */
-@media (max-width: 1300px) {
+/* Mobile TOC - collapsible inline */
+.mobile-toc {
+  margin: 20px 0 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+.mobile-toc-toggle {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+.mobile-toc-toggle:hover { background: var(--bg-toc-hover); }
+.toc-toggle-arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+.toc-toggle-arrow.open { transform: rotate(180deg); }
+.mobile-toc-nav {
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+  background: var(--bg-card);
+}
+
+/* Hide desktop TOC on narrow screens, show mobile TOC */
+@media (max-width: 1100px) {
   .toc-sidebar { display: none; }
+}
+/* Show desktop TOC on wide screens */
+@media (min-width: 1101px) {
+  .mobile-toc { display: none; }
 }
 
 /* Article Content - rendered markdown */

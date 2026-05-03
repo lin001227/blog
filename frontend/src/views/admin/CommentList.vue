@@ -9,18 +9,38 @@
           <router-link v-if="auth.isAdmin" to="/admin/users" class="admin-nav-link">用户</router-link>
           <router-link to="/admin/comments" class="admin-nav-link">评论</router-link>
           <a class="admin-nav-link" href="/" target="_blank">查看博客</a>
-          <div class="admin-user">
-            <el-avatar :size="28" shape="square" style="background: var(--text-accent); vertical-align: middle;">
-              <span style="font-size: 13px;">{{ auth.displayName.charAt(0) }}</span>
-            </el-avatar>
-            <span class="admin-user-name">{{ auth.displayName }}</span>
-          </div>
-          <el-button text size="small" @click="handleLogout" style="color: var(--text-secondary);">
-            退出登录
-          </el-button>
-          <button class="dark-toggle" @click="toggleDark" :title="isDark ? '切换亮色模式' : '切换暗色模式'">
-            {{ isDark ? '☀️' : '🌙' }}
-          </button>
+          <el-dropdown trigger="click" @command="handleUserCommand" class="admin-user-dropdown">
+            <div class="admin-user-trigger">
+              <el-avatar :size="28" shape="square" style="background: var(--text-accent); cursor: pointer;">
+                <span style="font-size: 13px;">{{ auth.displayName.charAt(0) }}</span>
+              </el-avatar>
+              <el-icon style="margin-left: 2px; color: var(--text-secondary);">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </el-icon>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item disabled style="cursor: default;">
+                  <div style="padding: 4px 0;">
+                    <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">{{ auth.displayName }}</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" v-if="auth.isAdmin">管理员</div>
+                  </div>
+                </el-dropdown-item>
+                <el-dropdown-item command="dark" divided>
+                  <span style="display: flex; align-items: center; gap: 6px;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                    切换主题
+                  </span>
+                </el-dropdown-item>
+                <el-dropdown-item command="logout">
+                  <span style="display: flex; align-items: center; gap: 6px; color: #e74c3c;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                    退出登录
+                  </span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </div>
     </nav>
@@ -81,9 +101,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { getAdminComments, getPendingCount, approveComment, rejectComment, deleteComment } from '../../api/comments'
 import { ElMessage } from 'element-plus'
-import { useDarkMode } from '../../composables/useDarkMode'
-
-const { isDark, toggleDark } = useDarkMode()
 const router = useRouter()
 const auth = useAuthStore()
 const comments = ref([])
@@ -101,10 +118,19 @@ function formatDate(dateStr) {
   const d = new Date(dateStr)
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
-function handleLogout() {
-  auth.logout()
-  router.push('/admin/login')
-}
+function handleUserCommand(command) {
+    if (command === 'logout') {
+      auth.logout()
+      router.push('/admin/login')
+    } else if (command === 'dark') {
+      const html = document.documentElement
+      const isDark = html.classList.contains('dark')
+      html.classList.toggle('dark')
+      html.classList.add('theme-transitioning')
+      setTimeout(() => html.classList.remove('theme-transitioning'), 500)
+      localStorage.setItem('theme', isDark ? 'light' : 'dark')
+    }
+  }
 async function handleApprove(row) {
   try {
     await approveComment(row.id)
@@ -187,37 +213,13 @@ onMounted(async () => {
   color: var(--text-primary);
 }
 
-.admin-user {
+.admin-user-dropdown {
+  margin-left: 12px;
+}
+.admin-user-trigger {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-left: 16px;
-  border-left: 1px solid var(--border);
-}
-.admin-user-name {
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-.dark-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-secondary);
   cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s;
-  line-height: 1;
-  padding: 0;
-}
-.dark-toggle:hover {
-  color: var(--text-accent);
-  border-color: var(--text-accent);
 }
 .admin-main {
   max-width: 1100px;

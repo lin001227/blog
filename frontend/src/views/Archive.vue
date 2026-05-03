@@ -8,9 +8,7 @@
           <router-link class="nav-link" to="/">首页</router-link>
           <router-link class="nav-link active" to="/archive">归档</router-link>
           <router-link class="nav-link" to="/admin/login">管理</router-link>
-          <button class="dark-toggle" @click="toggleDark" :title="isDark ? '切换亮色模式' : '切换暗色模式'">
-            {{ isDark ? '☀️' : '🌙' }}
-          </button>
+          <DarkToggle />
         </div>
       </div>
     </nav>
@@ -98,11 +96,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { getArchive } from '../api/articles'
-import { useDarkMode } from '../composables/useDarkMode'
-
-const { isDark, toggleDark } = useDarkMode()
+import DarkToggle from '../components/DarkToggle.vue'
 
 const archive = ref([])
 const loading = ref(true)
@@ -188,26 +184,6 @@ onMounted(async () => {
 .nav-link:hover,
 .nav-link.active {
   color: var(--text-primary);
-}
-.dark-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s;
-  line-height: 1;
-  padding: 0;
-}
-.dark-toggle:hover {
-  color: var(--text-accent);
-  border-color: var(--text-accent);
 }
 
 /* Header */
