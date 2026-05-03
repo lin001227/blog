@@ -76,4 +76,14 @@ public class CommentController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PutMapping("/api/admin/comments/{id}/pin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> togglePin(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(commentService.togglePin(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

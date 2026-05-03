@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -53,6 +55,14 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getAdminArticles());
     }
 
+    @GetMapping("/api/admin/articles/search")
+    public ResponseEntity<Map<String, Object>> searchAdminArticles(
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(articleService.searchAdminArticles(q, page, size));
+    }
+
     @PostMapping("/api/admin/articles")
     public ResponseEntity<ArticleResponse> createArticle(@Valid @RequestBody ArticleRequest request) {
         ArticleResponse response = articleService.createArticle(request);
@@ -80,5 +90,24 @@ public class ArticleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(java.util.Map.of("error", e.getMessage()));
         }
+    }
+
+    @PutMapping("/api/admin/articles/batch/pin")
+    public ResponseEntity<?> batchPin(@RequestBody Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        List<Integer> idsRaw = (List<Integer>) body.get("ids");
+        boolean pinned = Boolean.TRUE.equals(body.get("pinned"));
+        List<Long> ids = idsRaw.stream().map(Integer::longValue).collect(Collectors.toList());
+        articleService.batchPin(ids, pinned);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    @DeleteMapping("/api/admin/articles/batch")
+    public ResponseEntity<?> batchDelete(@RequestBody Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        List<Integer> idsRaw = (List<Integer>) body.get("ids");
+        List<Long> ids = idsRaw.stream().map(Integer::longValue).collect(Collectors.toList());
+        articleService.batchDelete(ids);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }

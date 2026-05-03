@@ -1,24 +1,7 @@
 <template>
-  <div class="page">
-    <!-- Navigation -->
-    <nav class="nav">
-      <div class="nav-inner">
-        <router-link to="/" class="nav-brand">风屿 · 随笔</router-link>
-        <div class="nav-links">
-          <router-link class="nav-link" to="/">首页</router-link>
-          <a class="nav-link" href="#">归档</a>
-          <a class="nav-link" href="#">标签</a>
-          <a class="nav-link" href="#">关于</a>
-          <router-link class="nav-link" to="/admin/login">管理</router-link>
-          <DarkToggle />
-        </div>
-      </div>
-    </nav>
-
-    <!-- Article -->
-    <main class="main" v-if="article">
-      <div class="article-container">
-        <router-link to="/" class="back-link">← 返回首页</router-link>
+  <div v-if="article">
+    <div class="article-container">
+      <router-link to="/" class="back-link">← 返回首页</router-link>
 
         <article class="article">
           <h1 class="article-title">{{ article.title }}</h1>
@@ -72,51 +55,86 @@
 
         <!-- Comment Section -->
         <div class="comment-section">
-          <h3 class="comment-section-title">评论 ({{ comments.length }})</h3>
+          <div class="comment-section-header">
+            <h3 class="comment-section-title">💬 评论 <span class="comment-count-badge">{{ comments.length }}</span></h3>
+          </div>
 
           <!-- Comment Form -->
           <div class="comment-form">
-            <div class="comment-form-row">
-              <input v-model="commentForm.nickname" placeholder="昵称 *" class="comment-input" maxlength="50" />
-              <input v-model="commentForm.email" placeholder="邮箱（选填）" class="comment-input" maxlength="255" />
+            <div class="comment-form-card">
+              <div class="comment-form-row">
+                <el-input
+                  v-model="commentForm.nickname"
+                  placeholder="昵称 *"
+                  :maxlength="50"
+                  size="large"
+                  clearable
+                >
+                  <template #prefix><span style="opacity:0.5">👤</span></template>
+                </el-input>
+                <el-input
+                  v-model="commentForm.email"
+                  placeholder="邮箱（选填）"
+                  :maxlength="255"
+                  size="large"
+                  clearable
+                >
+                  <template #prefix><span style="opacity:0.5">📧</span></template>
+                </el-input>
+              </div>
+              <el-input
+                v-model="commentForm.content"
+                type="textarea"
+                placeholder="写下你的评论..."
+                :maxlength="2000"
+                :rows="4"
+                :autosize="{ minRows: 4, maxRows: 10 }"
+                show-word-limit
+                class="comment-textarea-el"
+              />
+              <div class="comment-form-actions">
+                <span></span>
+                <el-button type="primary" size="large" :loading="submittingComment" @click="submitComment">
+                  ✏️ 发表评论
+                </el-button>
+              </div>
+              <transition name="msg-fade">
+                <div v-if="commentError" class="comment-msg comment-msg-error">⚠️ {{ commentError }}</div>
+                <div v-if="commentSuccess" class="comment-msg comment-msg-success">✅ 评论已提交，等待审核后显示</div>
+              </transition>
             </div>
-            <textarea v-model="commentForm.content" placeholder="写下你的评论..." class="comment-textarea" rows="4" maxlength="2000"></textarea>
-            <div class="comment-form-actions">
-              <span class="comment-form-hint">{{ commentForm.content.length }}/2000</span>
-              <button class="comment-submit-btn" :disabled="submittingComment" @click="submitComment">
-                {{ submittingComment ? '提交中...' : '发表评论' }}
-              </button>
-            </div>
-            <div v-if="commentError" class="comment-error">{{ commentError }}</div>
-            <div v-if="commentSuccess" class="comment-success">✅ 评论已提交，等待审核后显示</div>
           </div>
 
           <!-- Comment List -->
-          <div v-if="comments.length === 0" class="comment-empty">暂无评论，快来抢沙发吧~</div>
-          <div v-for="comment in comments" :key="comment.id" class="comment-item">
-            <div class="comment-header">
-              <span class="comment-avatar" :style="{ background: nameColor(comment.nickname) }">{{ comment.nickname.charAt(0) }}</span>
-              <div class="comment-header-info">
-                <span class="comment-nickname">{{ comment.nickname }}</span>
-                <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
+          <div v-if="comments.length === 0" class="comment-empty">
+            <div class="comment-empty-icon">💬</div>
+            <p class="comment-empty-text">暂无评论，快来抢沙发吧~</p>
+          </div>
+          <div v-else class="comment-list">
+            <div v-for="comment in comments" :key="comment.id" class="comment-item" :class="{ 'comment-item-pinned': comment.pinned }">
+              <div v-if="comment.pinned" class="comment-pinned-tag"><span>📌</span> 置顶评论</div>
+              <div class="comment-main">
+                <div class="comment-header">
+                  <span class="comment-avatar" :style="{ background: nameColor(comment.nickname) }">{{ comment.nickname.charAt(0) }}</span>
+                  <div class="comment-header-info">
+                    <span class="comment-nickname">{{ comment.nickname }}</span>
+                    <span class="comment-time">
+                      <span class="comment-relative-time">{{ formatRelativeTime(comment.createdAt) }}</span>
+                      <span class="comment-time-sep">·</span>
+                      <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="comment-body">{{ comment.content }}</div>
               </div>
             </div>
-            <div class="comment-body">{{ comment.content }}</div>
           </div>
         </div>
       </div>
-    </main>
-
-    <div v-else-if="loading" class="loading">加载中...</div>
-    <div v-else class="loading">文章未找到</div>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-inner">
-        <p>&copy; {{ new Date().getFullYear() }} 风屿 · 随笔. All rights reserved.</p>
-      </div>
-    </footer>
   </div>
+
+  <div v-else-if="loading" class="loading">加载中...</div>
+  <div v-else class="loading">文章未找到</div>
 </template>
 
 <script setup>
@@ -126,7 +144,6 @@ import { getArticle } from '../api/articles'
 import { getArticleComments, createComment } from '../api/comments'
 import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
-import DarkToggle from '../components/DarkToggle.vue'
 
 // Configure marked for better rendering
 marked.setOptions({
@@ -312,6 +329,26 @@ function formatDate(dateStr) {
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
 
+function formatRelativeTime(dateStr) {
+  if (!dateStr) return ''
+  const now = Date.now()
+  const d = new Date(dateStr).getTime()
+  const diff = now - d
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+  const months = Math.floor(days / 30)
+  const years = Math.floor(days / 365)
+
+  if (seconds < 60) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  if (days < 30) return `${days}天前`
+  if (months < 12) return `${months}个月前`
+  return `${years}年前`
+}
+
 async function submitComment() {
   if (!commentForm.value.nickname.trim()) { commentError.value = '请填写昵称'; return }
   if (!commentForm.value.content.trim()) { commentError.value = '请填写评论内容'; return }
@@ -355,64 +392,8 @@ onMounted(async () => {
 </script>
 
 <style>
-.page {
-  min-height: 100vh;
-  background: var(--bg-page);
-  transition: background 0.3s ease;
-}
-
-/* Nav */
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--bg-nav);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-.nav-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 24px;
-  height: var(--nav-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.nav-brand {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-decoration: none;
-  font-family: 'Noto Serif SC', serif;
-  letter-spacing: 1px;
-}
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-.nav-link {
-  font-size: 14px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color 0.2s;
-  font-weight: 500;
-}
-.nav-link:hover,
-.nav-link.active {
-  color: var(--text-primary);
-}
-
-
 
 /* Main */
-.main {
-  max-width: 740px;
-  margin: 0 auto;
-  padding: 40px 24px 60px;
-}
 
 .article-container {
   background: var(--bg-card);
@@ -478,157 +459,261 @@ onMounted(async () => {
   font-size: 15px;
 }
 
-/* Footer */
-.footer {
-  padding: 32px 24px;
-  text-align: center;
-}
-.footer-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-}
-.footer p {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
 /* Comment Section */
 .comment-section {
-  margin-top: 40px;
-  padding-top: 32px;
+  margin-top: 48px;
+  padding-top: 36px;
   border-top: 1px solid var(--border);
 }
-.comment-section-title {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 24px;
-}
-.comment-form {
+
+.comment-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 28px;
 }
+
+.comment-section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comment-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--text-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Comment Form */
+.comment-form {
+  margin-bottom: 32px;
+}
+
+.comment-form-card {
+  background: var(--bg-tag);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+
+.comment-form-card:focus-within {
+  border-color: var(--text-accent);
+}
+
 .comment-form-row {
   display: flex;
   gap: 12px;
   margin-bottom: 12px;
 }
-.comment-input {
-  flex: 1;
-  padding: 10px 14px;
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  background: var(--bg-input);
-  color: var(--text-primary);
-  font-family: inherit;
-  transition: border-color 0.2s;
-}
-.comment-input:focus {
-  border-color: var(--text-accent);
-}
-.comment-textarea {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  resize: vertical;
-  font-family: inherit;
-  line-height: 1.6;
-  background: var(--bg-input);
-  color: var(--text-primary);
-  transition: border-color 0.2s;
-}
-.comment-textarea:focus {
-  border-color: var(--text-accent);
-}
+
 .comment-form-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
-.comment-form-hint {
-  font-size: 12px;
-  color: var(--text-muted);
+
+/* Message fade transition */
+.msg-fade-enter-active,
+.msg-fade-leave-active {
+  transition: all 0.3s ease;
 }
-.comment-submit-btn {
-  padding: 8px 20px;
-  background: var(--text-accent);
-  color: #fff;
-  border: none;
+
+.msg-fade-enter-from,
+.msg-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.comment-msg {
+  margin-top: 12px;
+  padding: 10px 14px;
   border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: opacity 0.2s;
-  font-weight: 500;
-}
-.comment-submit-btn:hover { opacity: 0.85; }
-.comment-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.comment-error {
-  margin-top: 8px;
   font-size: 13px;
-  color: #ef4444;
+  line-height: 1.4;
 }
-.comment-success {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #22c55e;
+
+.comment-msg-error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
-.comment-empty {
-  text-align: center;
-  padding: 32px;
-  color: var(--text-muted);
-  font-size: 14px;
+
+.dark .comment-msg-error {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.3);
 }
+
+.comment-msg-success {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.dark .comment-msg-success {
+  background: rgba(22, 163, 74, 0.1);
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+/* Comment List */
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .comment-item {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.2s;
 }
-.comment-item:last-child {
-  border-bottom: none;
+
+.comment-item:hover {
+  border-color: var(--border-input);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
+
+.dark .comment-item:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+.comment-item-pinned {
+  position: relative;
+  border-color: var(--text-accent);
+  border-left: 3px solid var(--text-accent);
+}
+
+.comment-item-pinned:hover {
+  border-color: var(--text-accent);
+}
+
+.comment-pinned-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-accent);
+  user-select: none;
+}
+
+.comment-pinned-tag span {
+  font-size: 13px;
+}
+
+.comment-main {
+  padding: 16px;
+  padding-top: 10px;
+}
+
+.comment-item-pinned .comment-main {
+  padding-top: 6px;
+}
+
+/* Comment Header */
 .comment-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
+
 .comment-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   flex-shrink: 0;
   user-select: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
+
 .comment-header-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
+
 .comment-nickname {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.3;
 }
+
 .comment-time {
   font-size: 12px;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
+
+.comment-relative-time {
+  font-weight: 500;
+}
+
+.comment-time-sep {
+  opacity: 0.4;
+}
+
+.comment-date {
+  opacity: 0.7;
+}
+
+/* Comment Body */
 .comment-body {
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--text-body);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* Empty State */
+.comment-empty {
+  text-align: center;
+  padding: 48px 24px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+}
+
+.comment-empty-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.comment-empty-text {
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 /* TOC Sidebar (Desktop) */

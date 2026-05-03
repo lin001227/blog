@@ -1,163 +1,105 @@
 <template>
-  <div class="dashboard-page">
-    <!-- Admin Nav -->
-    <nav class="admin-nav">
-      <div class="admin-nav-inner">
-        <router-link to="/admin" class="admin-nav-brand">风屿 · 管理</router-link>
-        <div class="admin-nav-links">
-          <router-link to="/admin" class="admin-nav-link active">概览</router-link>
-          <router-link to="/admin/articles" class="admin-nav-link">文章</router-link>
-          <router-link to="/admin/comments" class="admin-nav-link">评论</router-link>
-          <router-link v-if="auth.isAdmin" to="/admin/users" class="admin-nav-link">用户</router-link>
-          <a class="admin-nav-link" href="/" target="_blank">查看博客</a>
-          <el-dropdown trigger="click" @command="handleUserCommand" class="admin-user-dropdown">
-            <div class="admin-user-trigger">
-              <el-avatar :size="28" shape="square" style="background: var(--text-accent); cursor: pointer;">
-                <span style="font-size: 13px;">{{ auth.displayName.charAt(0) }}</span>
-              </el-avatar>
-              <el-icon style="margin-left: 2px; color: var(--text-secondary);">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-              </el-icon>
-            </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item disabled style="cursor: default;">
-                  <div style="padding: 4px 0;">
-                    <div style="font-weight: 600; color: var(--text-primary); font-size: 14px;">{{ auth.displayName }}</div>
-                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" v-if="auth.isAdmin">管理员</div>
-                  </div>
-                </el-dropdown-item>
-                <el-dropdown-item command="dark" divided>
-                  <span style="display: flex; align-items: center; gap: 6px;">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-                    切换主题
-                  </span>
-                </el-dropdown-item>
-                <el-dropdown-item command="logout">
-                  <span style="display: flex; align-items: center; gap: 6px; color: #e74c3c;">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-                    退出登录
-                  </span>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-      </div>
-    </nav>
+  <div class="dashboard-header">
+    <h1 class="dashboard-heading">欢迎回来，{{ auth.displayName }}</h1>
+    <div class="header-subtitle">{{ currentDate }}</div>
+  </div>
 
-    <main class="dashboard-main">
-      <div class="dashboard-header">
-        <h1 class="dashboard-heading">欢迎回来，{{ auth.displayName }}</h1>
-        <div class="header-subtitle">{{ currentDate }}</div>
-      </div>
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card accent-blue">
+      <div class="stat-number">{{ stats.totalArticles }}</div>
+      <div class="stat-label">📝 文章总数</div>
+      <div class="stat-trend" v-if="stats.articlesThisWeek > 0">本周 +{{ stats.articlesThisWeek }}</div>
+    </div>
+    <div class="stat-card accent-green">
+      <div class="stat-number">{{ renderCount(stats.totalViews) }}</div>
+      <div class="stat-label">👁️ 总阅读量</div>
+      <div class="stat-trend">流量总计</div>
+    </div>
+    <div class="stat-card accent-orange">
+      <div class="stat-number">{{ stats.totalComments }}</div>
+      <div class="stat-label">💬 评论总数</div>
+      <div class="stat-trend pending" v-if="stats.pendingComments > 0">{{ stats.pendingComments }} 条待审核</div>
+    </div>
+    <div class="stat-card accent-purple">
+      <div class="stat-number">{{ stats.totalUsers }}</div>
+      <div class="stat-label">👥 用户总数</div>
+      <div class="stat-trend">管理员 + 编辑</div>
+    </div>
+  </div>
 
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card accent-blue">
-          <div class="stat-number">{{ stats.totalArticles }}</div>
-          <div class="stat-label">📝 文章总数</div>
-          <div class="stat-trend" v-if="stats.articlesThisWeek > 0">本周 +{{ stats.articlesThisWeek }}</div>
-        </div>
-        <div class="stat-card accent-green">
-          <div class="stat-number">{{ renderCount(stats.totalViews) }}</div>
-          <div class="stat-label">👁️ 总阅读量</div>
-          <div class="stat-trend">流量总计</div>
-        </div>
-        <div class="stat-card accent-orange">
-          <div class="stat-number">{{ stats.totalComments }}</div>
-          <div class="stat-label">💬 评论总数</div>
-          <div class="stat-trend pending" v-if="stats.pendingComments > 0">{{ stats.pendingComments }} 条待审核</div>
-        </div>
-        <div class="stat-card accent-purple">
-          <div class="stat-number">{{ stats.totalUsers }}</div>
-          <div class="stat-label">👥 用户总数</div>
-          <div class="stat-trend">管理员 + 编辑</div>
-        </div>
-      </div>
-
-      <!-- Charts Row -->
-      <div class="dashboard-grid">
-        <!-- Top Articles -->
-        <div class="panel">
-          <h2 class="section-title">🔥 阅读量 TOP 5</h2>
-          <div v-if="topArticles.length === 0" class="empty-state">暂无数据</div>
-          <div v-else class="top-list">
-            <div v-for="(article, index) in topArticles" :key="article.id" class="top-item">
-              <div class="top-rank" :class="'rank-' + (index + 1)">{{ index + 1 }}</div>
-              <div class="top-info">
-                <router-link :to="'/admin/articles/' + article.id + '/edit'" class="top-title">
-                  {{ article.title }}
-                </router-link>
-                <div class="top-meta">
-                  <span>{{ article.viewCount || 0 }} 阅读</span>
-                  <span class="meta-dot">·</span>
-                  <span>{{ formatDate(article.createdAt) }}</span>
-                </div>
-              </div>
-              <div class="top-bar-wrap">
-                <div class="top-bar" :style="{ width: (article.viewCount / maxViews * 100) + '%' }"></div>
-              </div>
+  <!-- Charts Row -->
+  <div class="dashboard-grid">
+    <!-- Top Articles -->
+    <div class="panel">
+      <h2 class="section-title">🔥 阅读量 TOP 5</h2>
+      <div v-if="topArticles.length === 0" class="empty-state">暂无数据</div>
+      <div v-else class="top-list">
+        <div v-for="(article, index) in topArticles" :key="article.id" class="top-item">
+          <div class="top-rank" :class="'rank-' + (index + 1)">{{ index + 1 }}</div>
+          <div class="top-info">
+            <router-link :to="'/admin/articles/' + article.id + '/edit'" class="top-title">
+              {{ article.title }}
+            </router-link>
+            <div class="top-meta">
+              <span>{{ article.viewCount || 0 }} 阅读</span>
+              <span class="meta-dot">·</span>
+              <span>{{ formatDate(article.createdAt) }}</span>
             </div>
           </div>
-        </div>
-
-        <!-- Recent Articles -->
-        <div class="panel">
-          <h2 class="section-title">🕐 最近文章</h2>
-          <div v-if="recentArticles.length === 0" class="empty-state">暂无数据</div>
-          <div v-else class="recent-list">
-            <div v-for="article in recentArticles" :key="article.id" class="recent-item">
-              <div class="recent-icon">{{ article.pinned ? '📌' : '📄' }}</div>
-              <div class="recent-info">
-                <router-link :to="'/admin/articles/' + article.id + '/edit'" class="recent-title">
-                  {{ article.title }}
-                </router-link>
-                <div class="recent-meta">
-                  <span class="recent-cat" v-if="article.category">{{ article.category }}</span>
-                  <span>{{ formatDate(article.createdAt) }}</span>
-                </div>
-              </div>
-              <div class="recent-views">
-                <span class="view-icon">👁️</span> {{ article.viewCount || 0 }}
-              </div>
-            </div>
+          <div class="top-bar-wrap">
+            <div class="top-bar" :style="{ width: (article.viewCount / maxViews * 100) + '%' }"></div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Quick Actions -->
-      <div class="quick-actions">
-        <h2 class="section-title">⚡ 快捷操作</h2>
-        <div class="action-buttons">
-          <router-link to="/admin/articles/new">
-            <el-button type="primary" size="large">
-              写新文章
-            </el-button>
-          </router-link>
-          <router-link to="/admin/articles">
-            <el-button size="large">
-              管理文章
-            </el-button>
-          </router-link>
-          <router-link v-if="stats.pendingComments > 0" to="/admin/comments">
-            <el-button size="large" type="warning">
-              审核评论 ({{ stats.pendingComments }})
-            </el-button>
-          </router-link>
+    <!-- Recent Articles -->
+    <div class="panel">
+      <h2 class="section-title">🕐 最近文章</h2>
+      <div v-if="recentArticles.length === 0" class="empty-state">暂无数据</div>
+      <div v-else class="recent-list">
+        <div v-for="article in recentArticles" :key="article.id" class="recent-item">
+          <div class="recent-icon">{{ article.pinned ? '📌' : '📄' }}</div>
+          <div class="recent-info">
+            <router-link :to="'/admin/articles/' + article.id + '/edit'" class="recent-title">
+              {{ article.title }}
+            </router-link>
+            <div class="recent-meta">
+              <span class="recent-cat" v-if="article.category">{{ article.category }}</span>
+              <span>{{ formatDate(article.createdAt) }}</span>
+            </div>
+          </div>
+          <div class="recent-views">
+            <span class="view-icon">👁️</span> {{ article.viewCount || 0 }}
+          </div>
         </div>
       </div>
-    </main>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <h2 class="section-title">⚡ 快捷操作</h2>
+    <div class="action-buttons">
+      <router-link to="/admin/articles/new">
+        <el-button type="primary" size="large">写新文章</el-button>
+      </router-link>
+      <router-link to="/admin/articles">
+        <el-button size="large">管理文章</el-button>
+      </router-link>
+      <router-link v-if="stats.pendingComments > 0" to="/admin/comments">
+        <el-button size="large" type="warning">审核评论 ({{ stats.pendingComments }})</el-button>
+      </router-link>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { getDashboard } from '../../api/dashboard'
 
-const router = useRouter()
 const auth = useAuthStore()
 
 const stats = ref({
@@ -207,20 +149,6 @@ function formatDate(dateStr) {
   return `${d.getMonth() + 1}月${d.getDate()}日`
 }
 
-function handleUserCommand(command) {
-    if (command === 'logout') {
-      auth.logout()
-      router.push('/admin/login')
-    } else if (command === 'dark') {
-      const html = document.documentElement
-      const isDark = html.classList.contains('dark')
-      html.classList.toggle('dark')
-      html.classList.add('theme-transitioning')
-      setTimeout(() => html.classList.remove('theme-transitioning'), 500)
-      localStorage.setItem('theme', isDark ? 'light' : 'dark')
-    }
-  }
-
 onMounted(async () => {
   try {
     const res = await getDashboard()
@@ -234,71 +162,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.dashboard-page {
-  min-height: 100vh;
-  background: var(--bg-page);
-  transition: background 0.3s ease;
-}
-
-/* ===== Nav ===== */
-.admin-nav {
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-.admin-nav-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 24px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.admin-nav-brand {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-decoration: none;
-}
-.admin-nav-links {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-.admin-nav-link {
-  font-size: 14px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.admin-nav-link:hover,
-.admin-nav-link.active,
-.admin-nav-link.router-link-exact-active {
-  color: var(--text-primary);
-}
-
-.admin-user-dropdown {
-  margin-left: 12px;
-}
-.admin-user-trigger {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-
-/* ===== Main ===== */
-.dashboard-main {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 40px 24px 60px;
-}
-
 .dashboard-header {
   margin-bottom: 32px;
 }
@@ -314,7 +177,7 @@ onMounted(async () => {
   color: var(--text-muted);
 }
 
-/* ===== Stats ===== */
+/* Stats Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -360,57 +223,40 @@ onMounted(async () => {
   font-weight: 500;
 }
 
-/* ===== Grid ===== */
+/* Grid Layout */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   margin-bottom: 32px;
 }
-
 .panel {
   background: var(--bg-card);
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow-card);
-  transition: background 0.3s ease;
 }
-
 .section-title {
   font-family: 'Noto Serif SC', serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  margin-bottom: 16px;
 }
-
 .empty-state {
   text-align: center;
-  padding: 32px 0;
+  padding: 32px;
   color: var(--text-muted);
   font-size: 14px;
 }
 
-/* ===== Top Articles ===== */
-.top-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.top-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-  position: relative;
-}
+/* Top Articles */
+.top-list { display: flex; flex-direction: column; gap: 12px; }
+.top-item { display: flex; align-items: center; gap: 12px; }
 .top-rank {
   width: 24px;
   height: 24px;
-  border-radius: 6px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -419,105 +265,73 @@ onMounted(async () => {
   color: #fff;
   flex-shrink: 0;
 }
-.rank-1 { background: #e74c3c; }
-.rank-2 { background: #e67e22; }
-.rank-3 { background: #f39c12; }
-.rank-4, .rank-5 { background: var(--border); color: var(--text-muted); }
+.rank-1 { background: #f56a00; }
+.rank-2 { background: #409eff; }
+.rank-3 { background: #67c23a; }
+.rank-4,
+.rank-5 { background: var(--border); color: var(--text-secondary); }
 
-.top-info {
-  flex: 1;
-  min-width: 0;
-  z-index: 1;
-}
+.top-info { flex: 1; min-width: 0; }
 .top-title {
+  display: block;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
   text-decoration: none;
-  display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.2s;
 }
-.top-title:hover {
-  color: var(--text-accent);
-}
-.top-meta {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-.meta-dot {
-  margin: 0 4px;
-}
-
+.top-title:hover { color: var(--text-accent); }
+.top-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.meta-dot { margin: 0 4px; }
 .top-bar-wrap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 100%;
-  pointer-events: none;
-  border-radius: 8px;
+  width: 60px;
+  height: 4px;
+  background: var(--bg-page);
+  border-radius: 2px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 .top-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
   height: 100%;
-  background: linear-gradient(90deg, rgba(64,158,255,0.08), rgba(64,158,255,0.03));
-  border-radius: 8px;
-  transition: width 0.6s ease;
-  min-width: 4px;
+  background: var(--text-accent);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  opacity: 0.6;
 }
 
-/* ===== Recent Articles ===== */
-.recent-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+/* Recent Articles */
+.recent-list { display: flex; flex-direction: column; gap: 8px; }
 .recent-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 8px;
-  border-radius: 8px;
-  transition: background 0.2s;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
 }
-.recent-item:hover {
-  background: var(--bg-page);
-}
-
-.recent-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
-.recent-info {
-  flex: 1;
-  min-width: 0;
-}
+.recent-item:last-child { border-bottom: none; }
+.recent-icon { font-size: 16px; flex-shrink: 0; }
+.recent-info { flex: 1; min-width: 0; }
 .recent-title {
+  display: block;
   font-size: 14px;
-  font-weight: 500;
   color: var(--text-primary);
   text-decoration: none;
-  display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.2s;
 }
-.recent-title:hover {
-  color: var(--text-accent);
-}
+.recent-title:hover { color: var(--text-accent); }
 .recent-meta {
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 2px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .recent-cat {
   background: var(--bg-page);
@@ -531,11 +345,9 @@ onMounted(async () => {
   white-space: nowrap;
   flex-shrink: 0;
 }
-.view-icon {
-  font-size: 12px;
-}
+.view-icon { font-size: 12px; }
 
-/* ===== Quick Actions ===== */
+/* Quick Actions */
 .quick-actions {
   background: var(--bg-card);
   border-radius: 12px;

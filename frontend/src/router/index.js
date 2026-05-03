@@ -3,18 +3,24 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: () => import('../views/HomePage.vue'),
-  },
-  {
-    path: '/article/:id',
-    name: 'ArticleDetail',
-    component: () => import('../views/ArticleDetail.vue'),
-  },
-  {
-    path: '/archive',
-    name: 'Archive',
-    component: () => import('../views/Archive.vue'),
+    component: () => import('../layouts/PublicLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Home',
+        component: () => import('../views/HomePage.vue'),
+      },
+      {
+        path: 'article/:id',
+        name: 'ArticleDetail',
+        component: () => import('../views/ArticleDetail.vue'),
+      },
+      {
+        path: 'archive',
+        name: 'Archive',
+        component: () => import('../views/Archive.vue'),
+      },
+    ],
   },
   {
     path: '/admin/login',
@@ -23,51 +29,53 @@ const routes = [
   },
   {
     path: '/admin',
-    name: 'Dashboard',
-    component: () => import('../views/admin/Dashboard.vue'),
+    component: () => import('../layouts/AdminLayout.vue'),
     meta: { requireAuth: true },
-  },
-  {
-    path: '/admin/articles',
-    name: 'ArticleList',
-    component: () => import('../views/admin/ArticleList.vue'),
-    meta: { requireAuth: true },
-  },
-  {
-    path: '/admin/articles/new',
-    name: 'NewArticle',
-    component: () => import('../views/admin/ArticleEditor.vue'),
-    meta: { requireAuth: true },
-  },
-  {
-    path: '/admin/articles/:id/edit',
-    name: 'EditArticle',
-    component: () => import('../views/admin/ArticleEditor.vue'),
-    meta: { requireAuth: true },
-  },
-  {
-    path: '/admin/users',
-    name: 'UserList',
-    component: () => import('../views/admin/UserList.vue'),
-    meta: { requireAuth: true, requireAdmin: true },
-  },
-  {
-    path: '/admin/users/new',
-    name: 'NewUser',
-    component: () => import('../views/admin/UserEditor.vue'),
-    meta: { requireAuth: true, requireAdmin: true },
-  },
-  {
-    path: '/admin/users/:id/edit',
-    name: 'EditUser',
-    component: () => import('../views/admin/UserEditor.vue'),
-    meta: { requireAuth: true, requireAdmin: true },
-  },
-  {
-    path: '/admin/comments',
-    name: 'CommentList',
-    component: () => import('../views/admin/CommentList.vue'),
-    meta: { requireAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'Dashboard',
+        component: () => import('../views/admin/Dashboard.vue'),
+      },
+      {
+        path: 'articles',
+        name: 'ArticleList',
+        component: () => import('../views/admin/ArticleList.vue'),
+      },
+      {
+        path: 'articles/new',
+        name: 'NewArticle',
+        component: () => import('../views/admin/ArticleEditor.vue'),
+      },
+      {
+        path: 'articles/:id/edit',
+        name: 'EditArticle',
+        component: () => import('../views/admin/ArticleEditor.vue'),
+      },
+      {
+        path: 'users',
+        name: 'UserList',
+        component: () => import('../views/admin/UserList.vue'),
+        meta: { requireAdmin: true },
+      },
+      {
+        path: 'users/new',
+        name: 'NewUser',
+        component: () => import('../views/admin/UserEditor.vue'),
+        meta: { requireAdmin: true },
+      },
+      {
+        path: 'users/:id/edit',
+        name: 'EditUser',
+        component: () => import('../views/admin/UserEditor.vue'),
+        meta: { requireAdmin: true },
+      },
+      {
+        path: 'comments',
+        name: 'CommentList',
+        component: () => import('../views/admin/CommentList.vue'),
+      },
+    ],
   },
 ]
 
@@ -80,9 +88,13 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const user = JSON.parse(localStorage.getItem('blog-user') || 'null')
 
-  if (to.meta.requireAuth && !token) {
+  // Check if any matched route requires auth
+  const requiresAuth = to.matched.some(r => r.meta.requireAuth)
+  const requiresAdmin = to.matched.some(r => r.meta.requireAdmin)
+
+  if (requiresAuth && !token) {
     next('/admin/login')
-  } else if (to.meta.requireAdmin && (!user || user.role !== 'ADMIN')) {
+  } else if (requiresAdmin && (!user || user.role !== 'ADMIN')) {
     next('/admin')
   } else {
     next()

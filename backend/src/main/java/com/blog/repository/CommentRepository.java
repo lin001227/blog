@@ -7,9 +7,9 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    List<Comment> findByArticleIdAndStatusOrderByCreatedAtAsc(Long articleId, String status);
+    List<Comment> findByArticleIdAndStatusOrderByPinnedDescCreatedAtAsc(Long articleId, String status);
     List<Comment> findByArticleIdOrderByCreatedAtAsc(Long articleId);
-    List<Comment> findAllByOrderByCreatedAtDesc();
+    List<Comment> findAllByOrderByPinnedDescCreatedAtDesc();
     long countByStatus(String status);
     long countByArticleIdAndStatus(Long articleId, String status);
 }

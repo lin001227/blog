@@ -41,6 +41,10 @@ public class Comment {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean pinned = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

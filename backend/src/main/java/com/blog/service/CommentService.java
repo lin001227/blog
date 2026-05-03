@@ -21,18 +21,28 @@ public class CommentService {
     private final ArticleRepository articleRepository;
 
     @Transactional(readOnly = true)
-    public List<CommentResponse> getPublicComments(Long articleId) {
-        return commentRepository.findByArticleIdAndStatusOrderByCreatedAtAsc(articleId, "APPROVED")
-                .stream()
-                .map(CommentResponse::fromEntity)
+    public List<CommentResponse> getAllComments() {
+        List<Comment> comments = commentRepository.findAllByOrderByPinnedDescCreatedAtDesc();
+        // Batch load article titles
+        List<Long> articleIds = comments.stream()
+                .map(Comment::getArticleId)
+                .distinct()
+                .collect(Collectors.toList());
+        java.util.Map<Long, String> articleTitles = articleRepository.findAllById(articleIds).stream()
+                .collect(Collectors.toMap(Article::getId, Article::getTitle));
+        return comments.stream()
+                .map(c -> CommentResponse.fromEntity(c, articleTitles.get(c.getArticleId())))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<CommentResponse> getAllComments() {
-        return commentRepository.findAllByOrderByCreatedAtDesc()
+    public List<CommentResponse> getPublicComments(Long articleId) {
+        String articleTitle = articleRepository.findById(articleId)
+                .map(Article::getTitle)
+                .orElse(null);
+        return commentRepository.findByArticleIdAndStatusOrderByPinnedDescCreatedAtAsc(articleId, "APPROVED")
                 .stream()
-                .map(CommentResponse::fromEntity)
+                .map(c -> CommentResponse.fromEntity(c, articleTitle))
                 .collect(Collectors.toList());
     }
 
@@ -79,5 +89,13 @@ public class CommentService {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
         commentRepository.delete(comment);
+    }
+
+    @Transactional
+    public CommentResponse togglePin(Long id) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        comment.setPinned(!Boolean.TRUE.equals(comment.getPinned()));
+        return CommentResponse.fromEntity(commentRepository.save(comment));
     }
 }

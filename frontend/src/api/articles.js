@@ -31,3 +31,15 @@ export function getArchive() {
 export function searchArticles(q) {
   return request.get('/articles/search', { params: { q } })
 }
+
+export function searchAdminArticles(params) {
+  return request.get('/admin/articles/search', { params })
+}
+
+export function batchPinArticles(ids, pinned) {
+  return request.put('/admin/articles/batch/pin', { ids, pinned })
+}
+
+export function batchDeleteArticles(ids) {
+  return request.delete('/admin/articles/batch', { data: { ids } })
+}

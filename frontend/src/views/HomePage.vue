@@ -1,168 +1,155 @@
 <template>
-  <div class="page">
-    <!-- Navigation -->
-    <nav class="nav">
-      <div class="nav-inner">
-        <router-link to="/" class="nav-brand">风屿 · 随笔</router-link>
-        <div class="nav-links">
-          <router-link class="nav-link" to="/">首页</router-link>
-          <router-link class="nav-link" to="/archive">归档</router-link>
-          <a class="nav-link" href="/api/rss" target="_blank" title="RSS 订阅">RSS</a>
-          <router-link class="nav-link" to="/admin/login">管理</router-link>
-          <DarkToggle />
-        </div>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <h1 class="hero-title">风屿 · 随笔</h1>
+      <p class="hero-subtitle">记录思考，分享见解，在文字中找到宁静。</p>
+      <div class="search-box">
+        <el-input
+          v-model="searchQuery"
+          placeholder="搜索文章..."
+          :prefix-icon="Search"
+          size="large"
+          clearable
+          class="hero-search"
+          @keyup.enter="doSearch"
+        />
+        <el-button type="primary" size="large" :loading="searching" @click="doSearch" class="hero-search-btn">
+          {{ searching ? '搜索中' : '🔍 搜索' }}
+        </el-button>
       </div>
-    </nav>
-
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-inner">
-        <h1 class="hero-title">风屿 · 随笔</h1>
-        <p class="hero-subtitle">记录思考，分享见解，在文字中找到宁静。</p>
-        <!-- Search Bar -->
-        <div class="search-box">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="搜索文章..."
-            class="search-input"
-            @keyup.enter="doSearch"
-          />
-          <button class="search-btn" @click="doSearch">{{ searching ? '搜索中...' : '🔍' }}</button>
-        </div>
-      </div>
-    </section>
-
-    <div class="main-layout" v-if="searchResults !== null">
-      <!-- Search Results -->
-      <main class="content">
-        <div class="section-title">
-          搜索结果：{{ searchQuery ? `"${searchQuery}"` : '' }}
-          <span class="result-count">共 {{ searchResults.length }} 条</span>
-        </div>
-        <div v-if="searchResults.length === 0" class="loading-text">未找到相关文章</div>
-        <article v-for="article in searchResults" :key="article.id" class="article-card">
-          <h2 class="article-title">
-            <router-link :to="`/article/${article.id}`">{{ article.title }}</router-link>
-          </h2>
-          <div class="article-meta">
-            <span>{{ formatDate(article.createdAt) }}</span>
-            <span v-if="article.category"> · {{ article.category }}</span>
-          </div>
-          <p class="article-excerpt">{{ excerpt(article.content) }}</p>
-          <router-link :to="`/article/${article.id}`" class="read-more">阅读全文 →</router-link>
-        </article>
-        <div style="text-align:center;padding:20px 0;">
-          <button class="back-to-home" @click="clearSearch">← 返回全部文章</button>
-        </div>
-      </main>
     </div>
+  </section>
 
-    <div class="main-layout" v-else-if="articles.length > 0">
-      <!-- Main Content -->
-      <main class="content">
-        <!-- Pinned Article -->
-        <article v-if="pinnedArticle" class="article-card pinned-card">
-          <div class="pinned-badge">
-            <el-icon style="margin-right: 4px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg></el-icon>
-            置顶
-          </div>
-          <h2 class="article-title">
-            <router-link :to="`/article/${pinnedArticle.id}`">{{ pinnedArticle.title }}</router-link>
-          </h2>
-          <div class="article-meta">
-            <span>{{ formatDate(pinnedArticle.createdAt) }}</span>
-            <span v-if="pinnedArticle.category"> · {{ pinnedArticle.category }}</span>
-            <span class="view-count"> · 👁️ {{ pinnedArticle.viewCount ?? 0 }} 阅读</span>
-          </div>
-          <p class="article-excerpt">{{ excerpt(pinnedArticle.content) }}</p>
-          <router-link :to="`/article/${pinnedArticle.id}`" class="read-more">阅读全文 →</router-link>
-        </article>
-
-        <!-- Article List -->
-        <div class="section-title" v-if="regularArticles.length > 0">最新文章</div>
-        <article v-for="article in regularArticles" :key="article.id" class="article-card">
-          <h2 class="article-title">
-            <router-link :to="`/article/${article.id}`">{{ article.title }}</router-link>
-          </h2>
-          <div class="article-meta">
-            <span>{{ formatDate(article.createdAt) }}</span>
-            <span v-if="article.category"> · {{ article.category }}</span>
-            <span v-if="article.tags && article.tags.length"> · {{ article.tags }}</span>
-            <span class="view-count"> · 👁️ {{ article.viewCount ?? 0 }} 阅读</span>
-            <span class="comment-count"> · 💬 {{ article.commentCount ?? 0 }}</span>
-          </div>
-          <p class="article-excerpt">{{ excerpt(article.content) }}</p>
-          <router-link :to="`/article/${article.id}`" class="read-more">阅读全文 →</router-link>
-        </article>
-
-        <div v-if="loading" class="loading-text">加载中...</div>
-      </main>
-
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-card">
-          <div class="sidebar-title">关于</div>
-          <p class="sidebar-text">个人博客，记录技术、生活与思考。</p>
-        </div>
-
-        <div class="sidebar-card">
-          <div class="sidebar-title">分类</div>
-          <div class="tag-list">
-            <span v-for="cat in categories" :key="cat" class="tag">{{ cat }}</span>
-          </div>
-          <div v-if="categories.length === 0" class="sidebar-text" style="font-size: 14px;">暂无分类</div>
-        </div>
-
-        <div class="sidebar-card">
-          <div class="sidebar-title">时间线</div>
-          <router-link to="/archive" class="archive-link">查看完整归档 →</router-link>
-        </div>
-      </aside>
-    </div>
-
-    <!-- Newsletter -->
-    <section class="newsletter">
-      <div class="newsletter-inner">
-        <h3 class="newsletter-title">订阅动态</h3>
-        <p class="newsletter-text">获取最新文章推送，不错过每一篇精彩内容。</p>
-        <div class="newsletter-form">
-          <input
-            v-model="subscribeEmail"
-            type="email"
-            placeholder="输入邮箱地址"
-            class="newsletter-input"
-            @keyup.enter="subscribe"
-          />
-          <button class="newsletter-btn" @click="subscribe" :disabled="subscribing">
-            {{ subscribing ? '提交中...' : '订阅' }}
-          </button>
-        </div>
-        <div v-if="subscribeMsg" :class="['subscribe-msg', subscribeMsgType]">
-          {{ subscribeMsg }}
-        </div>
+  <div class="main-layout" v-if="searchResults !== null">
+    <main class="content">
+      <div class="section-title">
+        搜索结果：{{ searchQuery ? `"${searchQuery}"` : '' }}
+        <span class="result-count">共 {{ searchResults.length }} 条</span>
       </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-inner">
-        <p>&copy; {{ new Date().getFullYear() }} 风屿 · 随笔. All rights reserved.</p>
+      <div v-if="searchResults.length === 0" class="empty-state">未找到相关文章</div>
+      <el-card v-for="article in searchResults" :key="article.id" class="article-card" shadow="hover" @click="$router.push(`/article/${article.id}`)">
+        <template #header>
+          <div class="article-card-header">
+            <h2 class="article-card-title">{{ article.title }}</h2>
+            <div class="article-card-meta">
+              <span>{{ formatDate(article.createdAt) }}</span>
+              <span v-if="article.category"><el-tag size="small" effect="plain">{{ article.category }}</el-tag></span>
+            </div>
+          </div>
+        </template>
+        <p class="article-excerpt">{{ excerpt(article.content) }}</p>
+        <template #footer>
+          <el-button text type="primary" @click.stop="$router.push(`/article/${article.id}`)">阅读全文 →</el-button>
+        </template>
+      </el-card>
+      <div style="text-align:center;padding:20px 0;">
+        <el-button @click="clearSearch">← 返回全部文章</el-button>
       </div>
-    </footer>
+    </main>
   </div>
+
+  <div class="main-layout" v-else-if="articles.length > 0">
+    <main class="content">
+      <!-- Pinned Articles -->
+      <el-card v-for="pinnedArticle in pinnedArticles" :key="pinnedArticle.id" class="article-card pinned-card" shadow="hover" @click="$router.push(`/article/${pinnedArticle.id}`)">
+        <template #header>
+          <div class="article-card-header">
+            <div class="pinned-badge"><el-icon><StarFilled /></el-icon> 置顶</div>
+            <h2 class="article-card-title">{{ pinnedArticle.title }}</h2>
+            <div class="article-card-meta">
+              <span>{{ formatDate(pinnedArticle.createdAt) }}</span>
+              <span v-if="pinnedArticle.category"><el-tag size="small" effect="plain">{{ pinnedArticle.category }}</el-tag></span>
+              <span>👁️ {{ pinnedArticle.viewCount ?? 0 }} 阅读</span>
+              <span>💬 {{ pinnedArticle.commentCount ?? 0 }}</span>
+            </div>
+          </div>
+        </template>
+        <p class="article-excerpt">{{ excerpt(pinnedArticle.content) }}</p>
+        <template #footer>
+          <el-button text type="primary" @click.stop="$router.push(`/article/${pinnedArticle.id}`)">阅读全文 →</el-button>
+        </template>
+      </el-card>
+
+      <!-- Article List -->
+      <div class="section-title" v-if="regularArticles.length > 0">最新文章</div>
+      <el-card v-for="article in regularArticles" :key="article.id" class="article-card" shadow="hover" @click="$router.push(`/article/${article.id}`)">
+        <template #header>
+          <div class="article-card-header">
+            <h2 class="article-card-title">{{ article.title }}</h2>
+            <div class="article-card-meta">
+              <span>{{ formatDate(article.createdAt) }}</span>
+              <span v-if="article.category"><el-tag size="small" effect="plain">{{ article.category }}</el-tag></span>
+              <span>👁️ {{ article.viewCount ?? 0 }} 阅读</span>
+              <span>💬 {{ article.commentCount ?? 0 }}</span>
+            </div>
+          </div>
+        </template>
+        <p class="article-excerpt">{{ excerpt(article.content) }}</p>
+        <template #footer>
+          <el-button text type="primary" @click.stop="$router.push(`/article/${article.id}`)">阅读全文 →</el-button>
+        </template>
+      </el-card>
+
+      <div v-if="loading" class="empty-state">加载中...</div>
+    </main>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <el-card shadow="never" class="sidebar-card">
+        <template #header><span class="sidebar-title">关于</span></template>
+        <p class="sidebar-text">个人博客，记录技术、生活与思考。</p>
+      </el-card>
+
+      <el-card shadow="never" class="sidebar-card">
+        <template #header><span class="sidebar-title">分类</span></template>
+        <div class="tag-list">
+          <el-tag v-for="cat in categories" :key="cat" size="small" effect="plain" style="margin: 2px;">{{ cat }}</el-tag>
+        </div>
+        <div v-if="categories.length === 0" class="sidebar-text">暂无分类</div>
+      </el-card>
+
+      <el-card shadow="never" class="sidebar-card">
+        <template #header><span class="sidebar-title">时间线</span></template>
+        <router-link to="/archive" class="archive-link">查看完整归档 →</router-link>
+      </el-card>
+    </aside>
+  </div>
+
+  <!-- Newsletter -->
+  <section class="newsletter">
+    <div class="newsletter-inner">
+      <h3 class="newsletter-title">订阅动态</h3>
+      <p class="newsletter-text">获取最新文章推送，不错过每一篇精彩内容。</p>
+      <div class="newsletter-form">
+        <el-input
+          v-model="subscribeEmail"
+          placeholder="输入邮箱地址"
+          size="large"
+          class="newsletter-input-el"
+          @keyup.enter="subscribe"
+        />
+        <el-button type="primary" size="large" :loading="subscribing" @click="subscribe">
+          {{ subscribing ? '提交中...' : '订阅' }}
+        </el-button>
+      </div>
+      <div v-if="subscribeMsg" :class="['subscribe-msg', 'subscribe-' + subscribeMsgType]">
+        {{ subscribeMsg }}
+      </div>
+    </div>
+  </section>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getArticles } from '../api/articles'
-import { searchArticles } from '../api/articles'
-import DarkToggle from '../components/DarkToggle.vue'
+import { useRouter } from 'vue-router'
+import { Search, StarFilled } from '@element-plus/icons-vue'
+import { getArticles, searchArticles } from '../api/articles'
 
+const router = useRouter()
 const articles = ref([])
 const loading = ref(true)
 
-// Search
 const searchQuery = ref('')
 const searchResults = ref(null)
 const searching = ref(false)
@@ -175,7 +162,6 @@ async function doSearch() {
     const res = await searchArticles(q)
     searchResults.value = res.data || []
   } catch (e) {
-    console.error('Search failed:', e)
     searchResults.value = []
   } finally {
     searching.value = false
@@ -186,24 +172,13 @@ function clearSearch() {
   searchResults.value = null
 }
 
-const pinnedArticle = computed(() => articles.value.find(a => a.pinned))
+const pinnedArticles = computed(() => articles.value.filter(a => a.pinned))
 const regularArticles = computed(() => articles.value.filter(a => !a.pinned))
 
 const categories = computed(() => {
   const cats = new Set()
   articles.value.forEach(a => { if (a.category) cats.add(a.category) })
   return Array.from(cats)
-})
-
-const archiveMonths = computed(() => {
-  const months = new Set()
-  articles.value.forEach(a => {
-    if (a.createdAt) {
-      const d = new Date(a.createdAt)
-      months.add(`${d.getFullYear()}年${d.getMonth() + 1}月`)
-    }
-  })
-  return Array.from(months).sort().reverse()
 })
 
 function formatDate(dateStr) {
@@ -229,7 +204,6 @@ onMounted(async () => {
   }
 })
 
-// --- Newsletter Subscribe ---
 const subscribeEmail = ref('')
 const subscribing = ref(false)
 const subscribeMsg = ref('')
@@ -242,7 +216,6 @@ async function subscribe() {
     subscribeMsgType.value = 'error'
     return
   }
-  // Simple email validation
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     subscribeMsg.value = '请输入有效的邮箱地址'
     subscribeMsgType.value = 'error'
@@ -252,7 +225,6 @@ async function subscribe() {
   subscribing.value = true
   subscribeMsg.value = ''
   try {
-    // Store in localStorage as a simple demo
     const subs = JSON.parse(localStorage.getItem('blog-subscribers') || '[]')
     if (subs.includes(email)) {
       subscribeMsg.value = '该邮箱已订阅 ✓'
@@ -269,72 +241,19 @@ async function subscribe() {
     subscribeMsgType.value = 'error'
   } finally {
     subscribing.value = false
-    // Auto hide after 5s
     setTimeout(() => { subscribeMsg.value = '' }, 5000)
   }
 }
 </script>
 
-<style>
-.page {
-  min-height: 100vh;
-  background: var(--bg-page);
-  transition: background 0.3s ease;
-}
-
-/* Nav */
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--bg-nav);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-.nav-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 24px;
-  height: var(--nav-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.nav-brand {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-decoration: none;
-  font-family: 'Noto Serif SC', serif;
-  letter-spacing: 1px;
-}
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-.nav-link {
-  font-size: 14px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color 0.2s;
-  font-weight: 500;
-}
-.nav-link:hover,
-.nav-link.active {
-  color: var(--text-primary);
-}
-
-
-
+<style scoped>
 /* Hero */
 .hero {
-  padding: 80px 24px 60px;
+  padding: 60px 24px;
   text-align: center;
 }
 .hero-inner {
-  max-width: 640px;
+  max-width: 600px;
   margin: 0 auto;
 }
 .hero-title {
@@ -342,52 +261,57 @@ async function subscribe() {
   font-size: 36px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   letter-spacing: 2px;
 }
 .hero-subtitle {
   font-size: 16px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  font-weight: 400;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+  line-height: 1.6;
 }
-
-/* Search */
 .search-box {
   display: flex;
-  max-width: 400px;
-  margin: 24px auto 0;
   gap: 8px;
+  max-width: 480px;
+  margin: 0 auto;
 }
-.search-input {
+.hero-search {
   flex: 1;
-  padding: 10px 16px;
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  background: var(--bg-input);
+}
+.hero-search-btn {
+  flex-shrink: 0;
+}
+
+/* Main Layout */
+.main-layout {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+.content {
+  flex: 1;
+  min-width: 0;
+}
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Section Title */
+.section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-family: inherit;
-  transition: border-color 0.2s;
-}
-.search-input:focus {
-  border-color: var(--text-accent);
-}
-.search-btn {
-  width: 44px;
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.2s;
-  line-height: 1;
-}
-.search-btn:hover {
-  border-color: var(--text-accent);
-  color: var(--text-accent);
+  margin-bottom: 20px;
+  margin-top: 8px;
 }
 .result-count {
   font-size: 13px;
@@ -395,178 +319,115 @@ async function subscribe() {
   font-weight: 400;
   margin-left: 8px;
 }
-.back-to-home {
-  background: none;
-  border: none;
-  color: var(--text-accent);
-  font-size: 14px;
-  cursor: pointer;
-  font-family: inherit;
-  padding: 8px 16px;
-  transition: opacity 0.2s;
-}
-.back-to-home:hover { opacity: 0.7; }
-
-/* Main Layout */
-.main-layout {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 24px 60px;
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 48px;
-}
 
 /* Article Cards */
 .article-card {
-  background: var(--bg-card);
-  border-radius: 8px;
-  padding: 32px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-card);
-  transition: box-shadow 0.2s, background 0.3s ease;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
 .article-card:hover {
-  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+.article-card :deep(.el-card__header) {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--el-border-color-light);
+}
+.article-card :deep(.el-card__body) {
+  padding: 12px 20px;
+}
+.article-card :deep(.el-card__footer) {
+  padding: 8px 20px 12px;
+  border-top: 1px solid var(--el-border-color-light);
 }
 .pinned-card {
-  border: 1px solid var(--border);
+  border-left: 3px solid var(--el-color-primary);
+}
+.article-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .pinned-badge {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   font-size: 12px;
-  color: var(--text-accent);
-  background: var(--bg-pinned);
-  padding: 2px 10px;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  font-weight: 500;
-  transition: background 0.3s ease;
+  font-weight: 600;
+  color: var(--el-color-primary);
+  margin-bottom: 2px;
 }
-.section-title {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 20px;
+.article-card-title {
+  font-size: 17px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.article-title {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 10px;
   line-height: 1.4;
+  margin: 0;
 }
-.article-title a {
-  color: var(--text-primary);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.article-title a:hover {
-  color: var(--text-accent);
-}
-.article-meta {
-  font-size: 13px;
+.article-card-meta {
+  font-size: 12px;
   color: var(--text-muted);
-  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .article-excerpt {
-  font-size: 15px;
-  color: var(--text-body);
-  line-height: 1.7;
-  margin-bottom: 16px;
-}
-.view-count {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-.read-more {
   font-size: 14px;
-  color: var(--text-accent);
-  text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.2s;
-}
-.read-more:hover {
-  opacity: 0.7;
-}
-.loading-text {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 40px;
-  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
 }
 
 /* Sidebar */
 .sidebar-card {
-  background: var(--bg-card);
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-card);
-  transition: background 0.3s ease;
+  margin-bottom: 0;
+}
+.sidebar-card :deep(.el-card__header) {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--el-border-color-light);
+}
+.sidebar-card :deep(.el-card__body) {
+  padding: 12px 16px;
 }
 .sidebar-title {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 16px;
   font-weight: 600;
+  font-size: 14px;
   color: var(--text-primary);
-  margin-bottom: 14px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
 }
 .sidebar-text {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.7;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
 }
 .tag-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-}
-.tag {
-  display: inline-block;
-  font-size: 12px;
-  color: var(--text-secondary);
-  background: var(--bg-tag);
-  padding: 3px 10px;
-  border-radius: 12px;
-  cursor: default;
-  transition: background 0.3s ease;
-}
-.archive-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.archive-item {
-  font-size: 14px;
-  color: var(--text-secondary);
-  cursor: default;
-  padding: 2px 0;
+  gap: 4px;
 }
 .archive-link {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-accent);
   text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.2s;
 }
 .archive-link:hover {
-  opacity: 0.7;
+  text-decoration: underline;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 /* Newsletter */
 .newsletter {
-  background: var(--bg-newsletter);
-  border-top: 1px solid var(--border);
-  padding: 60px 24px;
+  padding: 48px 24px;
   text-align: center;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  border-top: 1px solid var(--border);
 }
 .newsletter-inner {
   max-width: 480px;
@@ -574,82 +435,73 @@ async function subscribe() {
 }
 .newsletter-title {
   font-family: 'Noto Serif SC', serif;
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .newsletter-text {
-  font-size: 15px;
-  color: var(--text-secondary);
+  font-size: 14px;
+  color: var(--text-muted);
   margin-bottom: 20px;
 }
 .newsletter-form {
   display: flex;
   gap: 8px;
-  max-width: 400px;
-  margin: 0 auto;
 }
-.newsletter-input {
+.newsletter-input-el {
   flex: 1;
-  padding: 10px 16px;
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-  font-family: inherit;
-  background: var(--bg-input);
-  color: var(--text-primary);
-}
-.newsletter-input:focus {
-  border-color: var(--text-accent);
-}
-.newsletter-btn {
-  padding: 10px 24px;
-  background: var(--text-primary);
-  color: var(--bg-page);
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  font-family: inherit;
-  font-weight: 500;
-}
-.newsletter-btn:hover {
-  opacity: 0.8;
-}
-.newsletter-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 .subscribe-msg {
   margin-top: 12px;
   font-size: 13px;
-  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
 }
-.subscribe-msg.success {
+.subscribe-success {
   color: #16a34a;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
 }
-.subscribe-msg.error {
+.subscribe-error {
   color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
 }
-.subscribe-msg.info {
-  color: var(--text-accent);
+.subscribe-info {
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+.dark .subscribe-success {
+  background: rgba(22,163,74,0.1);
+  border-color: rgba(22,163,74,0.3);
+}
+.dark .subscribe-error {
+  background: rgba(220,38,38,0.1);
+  border-color: rgba(220,38,38,0.3);
+}
+.dark .subscribe-info {
+  background: rgba(37,99,235,0.1);
+  border-color: rgba(37,99,235,0.3);
 }
 
-/* Footer */
-.footer {
-  padding: 32px 24px;
-  text-align: center;
-}
-.footer-inner {
-  max-width: var(--max-width);
-  margin: 0 auto;
-}
-.footer p {
-  font-size: 13px;
-  color: var(--text-muted);
+/* Responsive */
+@media (max-width: 768px) {
+  .main-layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+  }
+  .hero-title {
+    font-size: 28px;
+  }
+  .search-box {
+    flex-direction: column;
+  }
+  .newsletter-form {
+    flex-direction: column;
+  }
 }
 </style>

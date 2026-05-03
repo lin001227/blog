@@ -6,6 +6,8 @@ import com.blog.dto.ArticleUpdateRequest;
 import com.blog.entity.Article;
 import com.blog.repository.ArticleRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -144,5 +146,38 @@ public class ArticleService {
                 .stream()
                 .map(a -> ArticleResponse.fromEntity(a, (int) commentRepository.countByArticleIdAndStatus(a.getId(), "APPROVED")))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> searchAdminArticles(String keyword, int page, int size) {
+        Page<Article> articlePage = articleRepository.searchAdminArticles(
+                (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null,
+                PageRequest.of(page, size)
+        );
+        List<ArticleResponse> articles = articlePage.getContent().stream()
+                .map(a -> ArticleResponse.fromEntity(a, (int) commentRepository.countByArticleIdAndStatus(a.getId(), "APPROVED")))
+                .collect(Collectors.toList());
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("content", articles);
+        result.put("totalElements", articlePage.getTotalElements());
+        result.put("totalPages", articlePage.getTotalPages());
+        result.put("page", page);
+        result.put("size", size);
+        return result;
+    }
+
+    @Transactional
+    public void batchPin(List<Long> ids, boolean pinned) {
+        List<Article> articles = articleRepository.findAllById(ids);
+        for (Article a : articles) {
+            a.setPinned(pinned);
+        }
+        articleRepository.saveAll(articles);
+    }
+
+    @Transactional
+    public void batchDelete(List<Long> ids) {
+        List<Article> articles = articleRepository.findAllById(ids);
+        articleRepository.deleteAll(articles);
     }
 }
