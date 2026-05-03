@@ -113,6 +113,13 @@ import { getArticle } from '../api/articles'
 import { getArticleComments, createComment } from '../api/comments'
 import { useDarkMode } from '../composables/useDarkMode'
 import { ElMessage } from 'element-plus'
+import { marked } from 'marked'
+
+// Configure marked for better rendering
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+})
 
 const { isDark, toggleDark } = useDarkMode()
 
@@ -139,14 +146,28 @@ const updatedText = computed(() => {
 
 const renderedContent = computed(() => {
   if (!article.value?.content) return ''
+  // Use marked to convert markdown to HTML
   return article.value.content
+})
+
+// Check if content is plain markdown (no HTML tags) and needs conversion
+const renderedHtml = computed(() => {
+  if (!article.value?.content) return ''
+  const content = article.value.content
+  // If content doesn't contain HTML tags, treat as markdown
+  if (!/<[a-z][\s\S]*>/i.test(content)) {
+    return marked.parse(content)
+  }
+  // Already has HTML tags - might be mixed with markdown, still run through marked
+  // marked handles HTML tags in markdown gracefully
+  return marked.parse(content)
 })
 
 // --- Open Graph ---
 function updateMetaTags(article) {
   const title = article ? `${article.title} - 风屿 · 随笔` : '风屿 · 随笔'
   const description = article
-    ? (article.content ? article.content.replace(/<[^>]*>/g, '').replace(/[#*\\[\\]`>|-]/g, ' ').trim().substring(0, 200) : '')
+    ? renderedHtml.value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().substring(0, 200)
     : '记录思考，分享见解，在文字中找到宁静。'
 
   document.title = title
@@ -174,7 +195,7 @@ function generateId(text, index) {
 }
 
 const contentWithAnchors = computed(() => {
-  const html = article.value?.content || ''
+  const html = renderedHtml.value
   // Add IDs to h1, h2, h3 for TOC anchors
   let counter = 0
   return html.replace(/<h([123])(.*?)>(.*?)<\/h[123]>/gi, (match, level, attrs, text) => {
@@ -184,7 +205,7 @@ const contentWithAnchors = computed(() => {
 })
 
 const tocItems = computed(() => {
-  const html = article.value?.content || ''
+  const html = renderedHtml.value
   const items = []
   let counter = 0
   const regex = /<h([123])(.*?)>(.*?)<\/h[123]>/gi
@@ -391,76 +412,6 @@ onMounted(async () => {
   padding: 3px 10px;
   border-radius: 12px;
   transition: background 0.3s ease;
-}
-
-.article-content {
-  font-size: 16px;
-  line-height: 1.8;
-  color: var(--text-body);
-  font-family: 'Noto Serif SC', serif;
-}
-.article-content p {
-  margin-bottom: 1.2em;
-}
-.article-content h1,
-.article-content h2,
-.article-content h3,
-.article-content h4 {
-  font-family: 'Noto Serif SC', serif;
-  color: var(--text-primary);
-  margin: 1.5em 0 0.6em;
-  font-weight: 600;
-}
-.article-content h2 { font-size: 22px; }
-.article-content h3 { font-size: 18px; }
-.article-content ul,
-.article-content ol {
-  padding-left: 24px;
-  margin-bottom: 1.2em;
-}
-.article-content li {
-  margin-bottom: 0.4em;
-}
-.article-content blockquote {
-  border-left: 3px solid var(--border-blockquote);
-  padding-left: 16px;
-  margin: 1.2em 0;
-  color: var(--text-secondary);
-  font-style: italic;
-}
-.article-content pre {
-  background: var(--bg-pre);
-  border-radius: 6px;
-  padding: 16px;
-  overflow-x: auto;
-  margin: 1.2em 0;
-  font-size: 14px;
-  line-height: 1.6;
-  transition: background 0.3s ease;
-}
-.article-content code {
-  background: var(--bg-code);
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 14px;
-  transition: background 0.3s ease;
-}
-.article-content pre code {
-  background: none;
-  padding: 0;
-  border-radius: 0;
-}
-.article-content a {
-  color: var(--text-accent);
-  text-decoration: none;
-}
-.article-content a:hover {
-  text-decoration: underline;
-}
-.article-content img {
-  max-width: 100%;
-  border-radius: 6px;
-  margin: 1.2em 0;
 }
 
 .article-footer {
@@ -679,5 +630,110 @@ onMounted(async () => {
 /* Hide TOC on narrow screens */
 @media (max-width: 1300px) {
   .toc-sidebar { display: none; }
+}
+
+/* Article Content - rendered markdown */
+.article-content {
+  line-height: 1.8;
+  font-size: 16px;
+  color: var(--text-body);
+}
+.article-content h1,
+.article-content h2,
+.article-content h3 {
+  scroll-margin-top: 100px;
+  margin-top: 36px;
+  margin-bottom: 14px;
+  font-family: 'Noto Serif SC', serif;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.article-content h1 { font-size: 26px; }
+.article-content h2 { font-size: 22px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.article-content h3 { font-size: 18px; }
+.article-content p {
+  margin-bottom: 16px;
+  line-height: 1.8;
+}
+.article-content pre {
+  background: var(--bg-pre);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.article-content code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.9em;
+}
+.article-content :not(pre) > code {
+  background: var(--bg-code);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-accent);
+}
+.article-content pre code {
+  background: none;
+  padding: 0;
+  color: var(--text-body);
+}
+.article-content blockquote {
+  border-left: 3px solid var(--text-accent);
+  padding: 8px 16px;
+  margin: 16px 0;
+  background: var(--bg-tag);
+  border-radius: 0 6px 6px 0;
+  color: var(--text-secondary);
+}
+.article-content blockquote p {
+  margin-bottom: 4px;
+}
+.article-content ul,
+.article-content ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+.article-content li {
+  margin-bottom: 6px;
+}
+.article-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 32px 0;
+}
+.article-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.article-content th,
+.article-content td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+}
+.article-content th {
+  background: var(--bg-tag);
+  font-weight: 600;
+}
+.article-content img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+.article-content strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.article-content a {
+  color: var(--text-accent);
+  text-decoration: none;
+}
+.article-content a:hover {
+  text-decoration: underline;
 }
 </style>

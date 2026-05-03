@@ -128,8 +128,19 @@
         <h3 class="newsletter-title">订阅动态</h3>
         <p class="newsletter-text">获取最新文章推送，不错过每一篇精彩内容。</p>
         <div class="newsletter-form">
-          <input type="email" placeholder="输入邮箱地址" class="newsletter-input" />
-          <button class="newsletter-btn">订阅</button>
+          <input
+            v-model="subscribeEmail"
+            type="email"
+            placeholder="输入邮箱地址"
+            class="newsletter-input"
+            @keyup.enter="subscribe"
+          />
+          <button class="newsletter-btn" @click="subscribe" :disabled="subscribing">
+            {{ subscribing ? '提交中...' : '订阅' }}
+          </button>
+        </div>
+        <div v-if="subscribeMsg" :class="['subscribe-msg', subscribeMsgType]">
+          {{ subscribeMsg }}
         </div>
       </div>
     </section>
@@ -220,6 +231,51 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// --- Newsletter Subscribe ---
+const subscribeEmail = ref('')
+const subscribing = ref(false)
+const subscribeMsg = ref('')
+const subscribeMsgType = ref('success')
+
+async function subscribe() {
+  const email = subscribeEmail.value.trim()
+  if (!email) {
+    subscribeMsg.value = '请输入邮箱地址'
+    subscribeMsgType.value = 'error'
+    return
+  }
+  // Simple email validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    subscribeMsg.value = '请输入有效的邮箱地址'
+    subscribeMsgType.value = 'error'
+    return
+  }
+
+  subscribing.value = true
+  subscribeMsg.value = ''
+  try {
+    // Store in localStorage as a simple demo
+    const subs = JSON.parse(localStorage.getItem('blog-subscribers') || '[]')
+    if (subs.includes(email)) {
+      subscribeMsg.value = '该邮箱已订阅 ✓'
+      subscribeMsgType.value = 'info'
+    } else {
+      subs.push(email)
+      localStorage.setItem('blog-subscribers', JSON.stringify(subs))
+      subscribeMsg.value = '🎉 订阅成功！感谢你的关注'
+      subscribeMsgType.value = 'success'
+      subscribeEmail.value = ''
+    }
+  } catch (e) {
+    subscribeMsg.value = '订阅失败，请稍后重试'
+    subscribeMsgType.value = 'error'
+  } finally {
+    subscribing.value = false
+    // Auto hide after 5s
+    setTimeout(() => { subscribeMsg.value = '' }, 5000)
+  }
+}
 </script>
 
 <style>
@@ -586,6 +642,24 @@ onMounted(async () => {
 }
 .newsletter-btn:hover {
   opacity: 0.8;
+}
+.newsletter-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.subscribe-msg {
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.subscribe-msg.success {
+  color: #16a34a;
+}
+.subscribe-msg.error {
+  color: #dc2626;
+}
+.subscribe-msg.info {
+  color: var(--text-accent);
 }
 
 /* Footer */
