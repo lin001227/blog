@@ -24,9 +24,22 @@
       >
         <div class="card-inner">
           <div class="card-body">
-            <!-- Header -->
+            <!-- Header with title + actions inline -->
             <div class="card-header">
-              <h2 class="card-title">{{ article.title }}</h2>
+              <div class="card-title-row">
+                <h2 class="card-title">{{ article.title }}</h2>
+                <div class="card-actions">
+                  <el-tag v-if="article.summaryType === 'ai'" size="small" type="info" effect="plain" class="ai-badge">AI 摘要</el-tag>
+                  <el-button
+                    text
+                    type="primary"
+                    @click="openUrl(article.url)"
+                    class="read-original"
+                  >
+                    阅读原文 ↗
+                  </el-button>
+                </div>
+              </div>
               <div class="card-meta">
                 <span class="card-source">🌐 {{ article.source }}</span>
                 <span class="card-date">{{ formatDate(article.createdAt) }}</span>
@@ -36,19 +49,6 @@
 
             <!-- Summary -->
             <p class="card-summary">{{ article.summary }}</p>
-
-            <!-- Footer -->
-            <div class="card-footer">
-              <el-tag v-if="article.summaryType === 'ai'" size="small" type="info" effect="plain" class="ai-badge">AI 摘要</el-tag>
-              <el-button
-                text
-                type="primary"
-                @click="openUrl(article.url)"
-                class="read-original"
-              >
-                阅读原文 ↗
-              </el-button>
-            </div>
           </div>
         </div>
       </el-card>
@@ -211,12 +211,26 @@ onMounted(async () => {
 .card-header {
   margin-bottom: 12px;
 }
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
 .card-title {
   font-size: 17px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
-  margin: 0 0 8px;
+  margin: 0;
+  flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -243,13 +257,6 @@ onMounted(async () => {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
 }
 .ai-badge {
   font-size: 11px;

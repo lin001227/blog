@@ -34,15 +34,15 @@
           <div class="article-card-header">
             <h2 class="article-card-title">{{ article.title }}</h2>
             <div class="article-card-meta">
-              <span>{{ formatDate(article.createdAt) }}</span>
-              <span v-if="article.category"><el-tag size="small" effect="plain">{{ article.category }}</el-tag></span>
+              <span class="meta-stat"><el-icon><View /></el-icon> {{ article.viewCount ?? 0 }}</span>
+              <span class="meta-stat"><el-icon><ChatDotSquare /></el-icon> {{ article.commentCount ?? 0 }}</span>
+              <span class="meta-sep">·</span>
+              <span class="meta-date">{{ formatDate(article.createdAt) }}</span>
+              <el-tag v-if="article.category" size="small" effect="plain" class="meta-tag">{{ article.category }}</el-tag>
             </div>
           </div>
         </template>
         <p class="article-excerpt">{{ excerpt(article.content) }}</p>
-        <template #footer>
-          <el-button text type="primary" @click.stop="$router.push(`/article/${article.id}`)">阅读全文 →</el-button>
-        </template>
       </el-card>
       <div style="text-align:center;padding:20px 0;">
         <el-button @click="clearSearch">← 返回全部文章</el-button>
@@ -59,17 +59,15 @@
             <div class="pinned-badge"><el-icon><StarFilled /></el-icon> 置顶</div>
             <h2 class="article-card-title">{{ pinnedArticle.title }}</h2>
             <div class="article-card-meta">
-              <span>{{ formatDate(pinnedArticle.createdAt) }}</span>
-              <span v-if="pinnedArticle.category"><el-tag size="small" effect="plain">{{ pinnedArticle.category }}</el-tag></span>
-              <span><el-icon><View /></el-icon> {{ pinnedArticle.viewCount ?? 0 }} 阅读</span>
+              <span><el-icon><View /></el-icon> {{ pinnedArticle.viewCount ?? 0 }}</span>
               <span><el-icon><ChatDotSquare /></el-icon> {{ pinnedArticle.commentCount ?? 0 }}</span>
+              <span class="meta-dot">·</span>
+              <span>{{ formatDate(pinnedArticle.createdAt) }}</span>
+              <el-tag v-if="pinnedArticle.category" size="small" effect="plain">{{ pinnedArticle.category }}</el-tag>
             </div>
           </div>
         </template>
         <p class="article-excerpt">{{ excerpt(pinnedArticle.content) }}</p>
-        <template #footer>
-          <el-button text type="primary" @click.stop="$router.push(`/article/${pinnedArticle.id}`)">阅读全文 →</el-button>
-        </template>
       </el-card>
 
       <!-- Article List -->
@@ -79,17 +77,15 @@
           <div class="article-card-header">
             <h2 class="article-card-title">{{ article.title }}</h2>
             <div class="article-card-meta">
-              <span>{{ formatDate(article.createdAt) }}</span>
-              <span v-if="article.category"><el-tag size="small" effect="plain">{{ article.category }}</el-tag></span>
-              <span><el-icon><View /></el-icon> {{ article.viewCount ?? 0 }} 阅读</span>
-              <span><el-icon><ChatDotSquare /></el-icon> {{ article.commentCount ?? 0 }}</span>
+              <span class="meta-stat"><el-icon><View /></el-icon> {{ article.viewCount ?? 0 }}</span>
+              <span class="meta-stat"><el-icon><ChatDotSquare /></el-icon> {{ article.commentCount ?? 0 }}</span>
+              <span class="meta-sep">·</span>
+              <span class="meta-date">{{ formatDate(article.createdAt) }}</span>
+              <el-tag v-if="article.category" size="small" effect="plain" class="meta-tag">{{ article.category }}</el-tag>
             </div>
           </div>
         </template>
         <p class="article-excerpt">{{ excerpt(article.content) }}</p>
-        <template #footer>
-          <el-button text type="primary" @click.stop="$router.push(`/article/${article.id}`)">阅读全文 →</el-button>
-        </template>
       </el-card>
 
       <div v-if="loading" class="empty-state">加载中...</div>
@@ -345,11 +341,7 @@ async function subscribe() {
   border-bottom: none;
 }
 .article-card :deep(.el-card__body) {
-  padding: 6px 24px 14px;
-}
-.article-card :deep(.el-card__footer) {
-  padding: 4px 24px 18px;
-  border-top: 1px solid var(--border);
+  padding: 6px 24px 20px;
 }
 .pinned-card {
   border-left: 3px solid var(--text-accent) !important;
@@ -380,8 +372,34 @@ async function subscribe() {
   color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+}
+.meta-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-muted);
+}
+.meta-stat .el-icon {
+  font-size: 13px;
+}
+.meta-sep {
+  color: var(--border);
+  font-weight: 300;
+  margin: 0 1px;
+}
+.meta-date {
+  color: var(--text-muted);
+}
+.meta-tag {
+  font-size: 11px !important;
+  padding: 0 6px !important;
+  height: 20px !important;
+  line-height: 20px !important;
+  border: none !important;
+  background: var(--bg-tag) !important;
+  color: var(--text-secondary) !important;
 }
 .article-excerpt {
   font-size: 14px;
