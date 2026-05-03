@@ -23,3 +23,7 @@ export function updateArticle(id, data) {
 export function deleteArticle(id) {
   return request.delete(`/admin/articles/${id}`)
 }
+
+export function getArchive() {
+  return request.get('/articles/archive')
+}

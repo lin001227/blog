@@ -5,10 +5,8 @@
       <div class="nav-inner">
         <router-link to="/" class="nav-brand">风屿 · 随笔</router-link>
         <div class="nav-links">
-          <a class="nav-link active" href="/">首页</a>
-          <a class="nav-link" href="#">归档</a>
-          <a class="nav-link" href="#">标签</a>
-          <a class="nav-link" href="#">关于</a>
+          <router-link class="nav-link" to="/">首页</router-link>
+          <router-link class="nav-link" to="/archive">归档</router-link>
           <router-link class="nav-link" to="/admin/login">管理</router-link>
           <button class="dark-toggle" @click="toggleDark" :title="isDark ? '切换亮色模式' : '切换暗色模式'">
             {{ isDark ? '☀️' : '🌙' }}
@@ -82,10 +80,7 @@
 
         <div class="sidebar-card">
           <div class="sidebar-title">时间线</div>
-          <div class="archive-list">
-            <div v-for="item in archiveMonths" :key="item" class="archive-item">{{ item }}</div>
-            <div v-if="archiveMonths.length === 0" class="sidebar-text" style="font-size: 14px;">暂无归档</div>
-          </div>
+          <router-link to="/archive" class="archive-link">查看完整归档 →</router-link>
         </div>
       </aside>
     </div>
@@ -403,6 +398,16 @@ onMounted(async () => {
   color: var(--text-secondary);
   cursor: default;
   padding: 2px 0;
+}
+.archive-link {
+  font-size: 14px;
+  color: var(--text-accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+.archive-link:hover {
+  opacity: 0.7;
 }
 
 /* Newsletter */

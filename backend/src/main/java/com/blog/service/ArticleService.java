@@ -9,8 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.blog.dto.ArchiveResponse;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 @Service
 @RequiredArgsConstructor
@@ -86,6 +89,37 @@ public class ArticleService {
 
         Article saved = articleRepository.save(article);
         return ArticleResponse.fromEntity(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ArchiveResponse> getArchive() {
+        List<Article> articles = articleRepository.findAllByOrderByCreatedAtDesc();
+        Map<String, List<ArticleResponse>> grouped = articles.stream()
+                .map(ArticleResponse::fromEntity)
+                .collect(Collectors.groupingBy(
+                        a -> a.getCreatedAt().getYear() + "-" + String.format("%02d", a.getCreatedAt().getMonthValue()),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+
+        return grouped.entrySet().stream()
+                .map(entry -> {
+                    String[] parts = entry.getKey().split("-");
+                    int year = Integer.parseInt(parts[0]);
+                    int month = Integer.parseInt(parts[1]);
+                    return ArchiveResponse.builder()
+                            .year(year)
+                            .month(month)
+                            .monthLabel(year + "年" + month + "月")
+                            .articles(entry.getValue())
+                            .count(entry.getValue().size())
+                            .build();
+                })
+                .sorted((a, b) -> {
+                    if (a.getYear() != b.getYear()) return b.getYear() - a.getYear();
+                    return b.getMonth() - a.getMonth();
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional

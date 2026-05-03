@@ -1,5 +1,6 @@
 package com.blog.controller;
 
+import com.blog.dto.ArchiveResponse;
 import com.blog.dto.ArticleRequest;
 import com.blog.dto.ArticleResponse;
 import com.blog.dto.ArticleUpdateRequest;
@@ -23,6 +24,11 @@ public class ArticleController {
     @GetMapping("/api/articles")
     public ResponseEntity<List<ArticleResponse>> getPublicArticles() {
         return ResponseEntity.ok(articleService.getPublicArticles());
+    }
+
+    @GetMapping("/api/articles/archive")
+    public ResponseEntity<List<ArchiveResponse>> getArchive() {
+        return ResponseEntity.ok(articleService.getArchive());
     }
 
     @GetMapping("/api/articles/{id}")
