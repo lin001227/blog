@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>风屿 · 随笔</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg: #fafaf9;
+            --surface: #ffffff;
+            --border: #e7e5e4;
+            --border-l: #f0efed;
+            --text: #1c1917;
+            --text2: #78716c;
+            --text3: #a8a29e;
+            --accent: #2563eb;
+        }
+        body {
+            font-family: 'Noto Serif SC', 'Inter', serif;
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.8;
+        }
+        .sans { font-family:'Inter',sans-serif; }
+        ::selection { background:rgba(37,99,235,0.12); color:var(--accent); }
+
+        /* Nav */
+        .nav-link { font-family:'Inter',sans-serif; font-size:.875rem; font-weight:500; color:var(--text2); transition:color .2s; cursor:pointer; }
+        .nav-link:hover, .nav-link.active { color:var(--text); }
+
+        /* Page transitions */
+        .page {
+            display: none;
+            animation: pageIn .45s ease both;
+        }
+        .page.active { display: block; }
+
+        @keyframes pageIn {
+            from { opacity:0; transform:translateY(16px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        /* Post card */
+        .post-card {
+            display:block; text-decoration:none; color:inherit;
+            padding:20px 0; border-bottom:1px solid var(--border-l);
+            transition: all .25s ease; cursor:pointer;
+        }
+        .post-card:last-of-type { border-bottom:none; }
+        .post-card:hover {
+            padding-left:16px; margin-left:-16px; padding-right:16px; margin-right:-16px;
+            border-radius:12px; background:var(--surface);
+            border-bottom-color:transparent; box-shadow:0 1px 3px rgba(0,0,0,.04);
+        }
+        .post-card .tag-label {
+            font-family:'Inter',sans-serif; font-size:.72rem; font-weight:500;
+            color:var(--accent); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;
+        }
+        .post-card h3 {
+            font-size:1.15rem; font-weight:600; line-height:1.5; margin-bottom:6px; transition:color .2s;
+        }
+        .post-card:hover h3 { color:var(--accent); }
+        .post-card .excerpt {
+            font-size:.88rem; color:var(--text2); line-height:1.7; margin-bottom:10px;
+        }
+        .post-card .meta {
+            font-family:'Inter',sans-serif; font-size:.78rem; color:var(--text3);
+            display:flex; align-items:center; gap:12px;
+        }
+
+        /* Pinned */
+        .pinned-box {
+            background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; transition:all .3s;
+        }
+        .pinned-box:hover { box-shadow:0 4px 20px rgba(0,0,0,.05); border-color:#d6d3d1; }
+        .pinned-box .pin-badge {
+            font-family:'Inter',sans-serif; font-size:.7rem; font-weight:600; color:var(--accent);
+            text-transform:uppercase; letter-spacing:.08em; display:flex; align-items:center; gap:6px; margin-bottom:8px;
+        }
+
+        /* Tags */
+        .tag {
+            display:inline-block; padding:4px 16px; border-radius:100px;
+            font-family:'Inter',sans-serif; font-size:.8rem;
+            color:var(--text2); background:var(--surface); border:1px solid var(--border);
+            transition:all .2s; cursor:pointer;
+        }
+        .tag:hover { background:rgba(37,99,235,.06); border-color:rgba(37,99,235,.15); color:var(--accent); }
+        .tag-lg { padding:8px 20px; font-size:.9rem; }
+
+        /* Archive */
+        .archive-year {
+            margin-bottom:32px;
+        }
+        .archive-year h2 {
+            font-family:'Inter',sans-serif; font-size:1.5rem; font-weight:700; color:var(--text); margin-bottom:16px;
+        }
+        .archive-item {
+            display:flex; align-items:baseline; gap:16px; padding:8px 0;
+            border-bottom:1px solid var(--border-l); cursor:pointer; transition:color .2s;
+        }
+        .archive-item:hover h3 { color:var(--accent); }
+        .archive-item .date {
+            font-family:'Inter',sans-serif; font-size:.8rem; color:var(--text3); min-width:48px;
+        }
+        .archive-item h3 { font-size:.95rem; font-weight:500; transition:color .2s; }
+
+        /* Post detail */
+        .post-detail .back-link {
+            font-family:'Inter',sans-serif; font-size:.85rem; color:var(--text2); cursor:pointer; transition:color .2s;
+            display:inline-flex; align-items:center; gap:6px; margin-bottom:24px;
+        }
+        .post-detail .back-link:hover { color:var(--text); }
+        .post-detail h1 {
+            font-size:2rem; font-weight:700; line-height:1.3; margin-bottom:12px; letter-spacing:-.01em;
+        }
+        .post-detail .meta-line {
+            font-family:'Inter',sans-serif; font-size:.82rem; color:var(--text3);
+            display:flex; align-items:center; gap:16px; margin-bottom:32px; padding-bottom:24px;
+            border-bottom:1px solid var(--border-l);
+        }
+        .post-detail .content {
+            font-size:1rem; line-height:1.9; color:var(--text);
+        }
+        .post-detail .content p { margin-bottom:20px; }
+        .post-detail .content h2 {
+            font-size:1.4rem; font-weight:600; margin:36px 0 12px;
+        }
+        .post-detail .content blockquote {
+            margin:24px 0; padding:16px 24px; border-left:3px solid var(--accent);
+            background:rgba(37,99,235,.04); border-radius:0 8px 8px 0;
+            color:var(--text2); font-style:italic;
+        }
+        .post-detail .content code {
+            font-family:'JetBrains Mono',monospace; font-size:.85em;
+            background:var(--border-l); padding:2px 8px; border-radius:4px;
+        }
+        .post-detail .content pre {
+            margin:24px 0; padding:20px; border-radius:12px;
+            background:#1c1917; color:#e7e5e4; overflow-x:auto; font-size:.85rem; line-height:1.7;
+        }
+
+        /* Newsletter */
+        .nl-box {
+            background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:32px; text-align:center;
+        }
+        .nl-box h3 { font-size:1.1rem; font-weight:600; margin-bottom:8px; }
+        .nl-box p { font-size:.85rem; color:var(--text2); margin-bottom:20px; }
+        .nl-box input {
+            padding:10px 18px; border-radius:100px; border:1px solid var(--border);
+            background:var(--bg); font-family:'Inter',sans-serif; font-size:.85rem;
+            outline:none; transition:border-color .2s; color:var(--text); width:100%;
+        }
+        .nl-box input:focus { border-color:var(--accent); }
+        .nl-box button {
+            padding:10px 24px; border-radius:100px; background:var(--text); color:#fff;
+            font-family:'Inter',sans-serif; font-size:.85rem; font-weight:500; border:none; cursor:pointer; transition:opacity .2s; white-space:nowrap;
+        }
+        .nl-box button:hover { opacity:.85; }
+
+        /* About page */
+        .about-card {
+            background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:36px;
+        }
+        .about-card .avatar-lg {
+            width:80px; height:80px; border-radius:50%;
+            background:linear-gradient(135deg,#dbeafe,#bfdbfe);
+            display:flex; align-items:center; justify-content:center;
+            font-size:32px; font-weight:700; color:var(--accent);
+        }
+        .timeline-item {
+            display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--border-l);
+        }
+        .timeline-item:last-child { border-bottom:none; }
+        .timeline-item .year {
+            font-family:'Inter',sans-serif; font-size:.82rem; color:var(--text3); min-width:60px; font-weight:500;
+        }
+
+        /* Side */
+        .side-section { margin-bottom:28px; }
+        .side-section h4 {
+            font-family:'Inter',sans-serif; font-size:.72rem; font-weight:600; text-transform:uppercase;
+            letter-spacing:.08em; color:var(--text3); margin-bottom:12px;
+        }
+        .side-link {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:7px 0; font-family:'Inter',sans-serif; font-size:.82rem;
+            color:var(--text2); text-decoration:none; border-bottom:1px solid var(--border-l); cursor:pointer; transition:color .2s;
+        }
+        .side-link:last-child { border-bottom:none; }
+        .side-link:hover { color:var(--text); }
+        .side-link .cnt { font-size:.72rem; color:var(--text3); }
+
+        #back-top {
+            position:fixed; bottom:32px; right:32px; width:40px; height:40px;
+            border-radius:50%; background:var(--surface); border:1px solid var(--border);
+            color:var(--text2); font-size:18px; cursor:pointer;
+            opacity:0; visibility:hidden; transition:all .25s; z-index:100;
+            display:flex; align-items:center; justify-content:center;
+        }
+        #back-top.show { opacity:1; visibility:visible; }
+        #back-top:hover { background:var(--text); border-color:var(--text); color:#fff; transform:translateY(-3px); }
+
+        @media(max-width:768px) {
+            .post-card:hover { padding-left:0; margin-left:0; padding-right:0; margin-right:0; border-radius:0; background:transparent; box-shadow:none; }
+            .post-card:hover h3 { color:inherit; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ====== Nav ====== -->
+<nav class="sticky top-0 z-50" style="background:rgba(250,250,249,.85); backdrop-filter:blur(12px); border-bottom:1px solid var(--border-l);">
+    <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+        <a class="flex items-center gap-2 no-uce" style="font-family:'Noto Serif SC',serif; font-weight:700; font-size:1.15rem; color:var(--text); cursor:pointer;" onclick="navigate('home')">
+            风屿<span style="color:var(--text3); font-weight:400;">·随笔</span>
+        </a>
+        <div class="hidden sm:flex items-center gap-7">
+            <a class="nav-link active" data-nav="home" onclick="navigate('home')">首页</a>
+            <a class="nav-link" data-nav="archive" onclick="navigate('archive')">归档</a>
+            <a class="nav-link" data-nav="tags" onclick="navigate('tags')">标签</a>
+            <a class="nav-link" data-nav="about" onclick="navigate('about')">关于</a>
+        </div>
+        <button class="sm:hidden text-xl" id="menu-btn" style="color:var(--text2);">☰</button>
+    </div>
+</nav>
+
+<main class="max-w-5xl mx-auto px-6 py-10">
+
+    <!-- ====== PAGE: HOME ====== -->
+    <div id="page-home" class="page active">
+
+        <section class="mb-12">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-5" style="font-family:'Inter',sans-serif; font-size:.72rem; font-weight:500; color:var(--text2); background:var(--surface); border:1px solid var(--border);">
+                ✎ 写于 2026 · 春
+            </div>
+            <h1 style="font-size:2.4rem; font-weight:700; line-height:1.25; margin-bottom:14px; letter-spacing:-.02em;">
+                在键盘声中<br>寻找心流体验
+            </h1>
+            <p style="font-size:1rem; color:var(--text2); max-width:540px; line-height:1.8;">
+                记录技术思考、阅读笔记与生活感悟。不追逐热点，只书写经过沉淀的内容。
+            </p>
+        </section>
+
+        <section class="mb-14">
+            <div class="pinned-box" style="cursor:pointer;" onclick="navigate('post',1)">
+                <div class="pin-badge">📌 置顶</div>
+                <h2 style="font-size:1.25rem; font-weight:600; margin-bottom:6px; line-height:1.4;">从零搭建个人博客：我的技术栈选择与思考</h2>
+                <p style="font-size:.88rem; color:var(--text2); line-height:1.7; margin-bottom:12px;">
+                    在众多静态博客生成器中，为什么我选择了最朴素的方式？从域名、服务器到前端框架的完整选型思路。
+                </p>
+                <div style="font-family:'Inter',sans-serif; font-size:.78rem; color:var(--text3); display:flex; align-items:center; gap:14px;">
+                    <span>2026.04.30</span><span>·</span><span>6 min</span><span>·</span><span style="color:var(--accent);"># 杂谈</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid lg:grid-cols-[1fr_260px] gap-12">
+            <div>
+                <div class="post-card" onclick="navigate('post',2)">
+                    <div class="tag-label">Docker</div>
+                    <h3>Docker 容器化部署最佳实践</h3>
+                    <p class="excerpt">从多阶段构建到镜像瘦身，从 docker-compose 到健康检查——这套实践帮我省下了 60% 的部署时间。</p>
+                    <div class="meta"><span>📅 2026.04.28</span><span>📖 5 min</span></div>
+                </div>
+                <div class="post-card" onclick="navigate('post',3)">
+                    <div class="tag-label">React</div>
+                    <h3>React 18 并发模式：告别卡顿</h3>
+                    <p class="excerpt">useTransition、useDeferredValue、Suspense……这些新 API 到底怎么用？一个实战案例讲清楚。</p>
+                    <div class="meta"><span>📅 2026.04.25</span><span>📖 8 min</span></div>
+                </div>
+                <div class="post-card" onclick="navigate('post',4)">
+                    <div class="tag-label">Python</div>
+                    <h3>Python 异步编程入门指北</h3>
+                    <p class="excerpt">async/await 其实没那么神秘。从一个爬虫的例子出发，理解事件循环与协程的本质。</p>
+                    <div class="meta"><span>📅 2026.04.22</span><span>📖 6 min</span></div>
+                </div>
+                <div class="post-card" onclick="navigate('post',5)">
+                    <div class="tag-label">CSS</div>
+                    <h3>CSS 命名规范的艺术</h3>
+                    <p class="excerpt">BEM、Utility-First、CSS Modules……各类方案深度对比，帮你找到最适合团队的那一套。</p>
+                    <div class="meta"><span>📅 2026.04.18</span><span>📖 4 min</span></div>
+                </div>
+                <div class="post-card" onclick="navigate('post',6)">
+                    <div class="tag-label">数据库</div>
+                    <h3>PostgreSQL 索引优化实战</h3>
+                    <p class="excerpt">EXPLAIN ANALYZE 怎么看？B-tree、Hash、GiST 怎么选？从 3 秒到 3 毫秒的调优记录。</p>
+                    <div class="meta"><span>📅 2026.04.15</span><span>📖 7 min</span></div>
+                </div>
+                <div class="post-card" onclick="navigate('post',7)">
+                    <div class="tag-label">DevOps</div>
+                    <h3>GitHub Actions + Docker 自动化部署</h3>
+                    <p class="excerpt">Push 代码到 main 分支 → 自动构建镜像 → 部署到服务器。全流程配置详解。</p>
+                    <div class="meta"><span>📅 2026.04.10</span><span>📖 6 min</span></div>
+                </div>
+                <div class="flex items-center justify-between pt-6">
+                    <span style="font-family:'Inter',sans-serif; font-size:.82rem; color:var(--text3);">第 1 页，共 7 页</span>
+                    <div class="flex gap-2">
+                        <span class="px-4 py-2 rounded-lg" style="font-family:'Inter',sans-serif; font-size:.82rem; background:var(--text); color:#fff; cursor:default;">1</span>
+                        <span class="px-4 py-2 rounded-lg" style="font-family:'Inter',sans-serif; font-size:.82rem; background:transparent; color:var(--text2); border:1px solid var(--border); cursor:default;">2</span>
+                        <span class="px-4 py-2 rounded-lg" style="font-family:'Inter',sans-serif; font-size:.82rem; background:transparent; color:var(--text2); border:1px solid var(--border); cursor:default;">3</span>
+                        <span class="px-4 py-2 rounded-lg" style="font-family:'Inter',sans-serif; font-size:.82rem; background:transparent; color:var(--text2); border:1px solid var(--border); cursor:default;">→</span>
+                    </div>
+                </div>
+            </div>
+            <aside class="space-y-8" style="font-family:'Inter',sans-serif;">
+                <div class="side-section">
+                    <h4>关于我</h4>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--accent);">风</div>
+                        <div><div style="font-weight:600;font-size:.88rem;">风屿</div><div style="font-size:.78rem;color:var(--text3);">全栈开发者 · 效率控</div></div>
+                    </div>
+                    <p style="font-size:.82rem;color:var(--text2);line-height:1.7;font-family:'Noto Serif SC',serif;">热爱技术与创造，专注于 Web 开发与云原生。相信好的文字值得被认真阅读。</p>
+                </div>
+                <div class="side-section">
+                    <h4>热门标签</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tag" onclick="navigate('tags')">React</span>
+                        <span class="tag" onclick="navigate('tags')">Docker</span>
+                        <span class="tag" onclick="navigate('tags')">Python</span>
+                        <span class="tag" onclick="navigate('tags')">CSS</span>
+                        <span class="tag" onclick="navigate('tags')">TypeScript</span>
+                        <span class="tag" onclick="navigate('tags')">Node.js</span>
+                        <span class="tag" onclick="navigate('tags')">数据库</span>
+                        <span class="tag" onclick="navigate('tags')">DevOps</span>
+                    </div>
+                </div>
+                <div class="side-section">
+                    <h4>归档</h4>
+                    <div class="side-link" onclick="navigate('archive')"><span>2026 年 4 月</span><span class="cnt">12 篇</span></div>
+                    <div class="side-link" onclick="navigate('archive')"><span>2026 年 3 月</span><span class="cnt">8 篇</span></div>
+                    <div class="side-link" onclick="navigate('archive')"><span>2026 年 2 月</span><span class="cnt">6 篇</span></div>
+                    <div class="side-link" onclick="navigate('archive')"><span>2026 年 1 月</span><span class="cnt">5 篇</span></div>
+                </div>
+            </aside>
+        </div>
+
+        <div class="mt-14">
+            <div class="nl-box">
+                <h3>📬 订阅更新</h3>
+                <p>有新文章时第一时间收到通知，每月 2-3 封，不打扰。</p>
+                <form class="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto" onsubmit="event.preventDefault(); alert('✅ 订阅成功！');">
+                    <input type="email" placeholder="your@email.com" required>
+                    <button type="submit">订阅</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PAGE: ARCHIVE ====== -->
+    <div id="page-archive" class="page">
+        <div class="mb-10">
+            <h1 style="font-size:2rem; font-weight:700; letter-spacing:-.01em;">📚 归档</h1>
+            <p style="font-size:.9rem; color:var(--text2);">共 42 篇文章，按时间倒序排列</p>
+        </div>
+
+        <div class="archive-year">
+            <h2>2026</h2>
+            <div class="archive-item" onclick="navigate('post',2)">
+                <span class="date">04.28</span>
+                <h3>Docker 容器化部署最佳实践</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',3)">
+                <span class="date">04.25</span>
+                <h3>React 18 并发模式：告别卡顿</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',4)">
+                <span class="date">04.22</span>
+                <h3>Python 异步编程入门指北</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',5)">
+                <span class="date">04.18</span>
+                <h3>CSS 命名规范的艺术</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',6)">
+                <span class="date">04.15</span>
+                <h3>PostgreSQL 索引优化实战</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',7)">
+                <span class="date">04.10</span>
+                <h3>GitHub Actions + Docker 自动化部署</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',8)">
+                <span class="date">03.28</span>
+                <h3>TypeScript 类型体操：从入门到放弃</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',9)">
+                <span class="date">03.20</span>
+                <h3>Go 语言并发模型深度解析</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',10)">
+                <span class="date">03.12</span>
+                <h3>系统设计面试：设计一个短链接服务</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',11)">
+                <span class="date">03.05</span>
+                <h3>Vim 配置美化与效率提升指南</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',12)">
+                <span class="date">02.18</span>
+                <h3>Kubernetes 入门：Pod、Service、Deployment</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',13)">
+                <span class="date">02.08</span>
+                <h3>2025 年度读书总结与推荐</h3>
+            </div>
+        </div>
+
+        <div class="archive-year">
+            <h2>2025</h2>
+            <div class="archive-item" onclick="navigate('post',14)">
+                <span class="date">12.20</span>
+                <h3>Neovim + LSP 打造现代 IDE</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',15)">
+                <span class="date">11.15</span>
+                <h3>Redis 核心数据结构与应用场景</h3>
+            </div>
+            <div class="archive-item" onclick="navigate('post',16)">
+                <span class="date">10.08</span>
+                <h3>从 MVC 到 Clean Architecture</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PAGE: TAGS ====== -->
+    <div id="page-tags" class="page">
+        <div class="mb-10">
+            <h1 style="font-size:2rem; font-weight:700; letter-spacing:-.01em;">🏷️ 标签</h1>
+            <p style="font-size:.9rem; color:var(--text2);">共 36 个标签，点击查看相关文章</p>
+        </div>
+
+        <div class="flex flex-wrap gap-3 mb-12">
+            <span class="tag tag-lg">React <span style="color:var(--text3);font-size:.75rem;">(8)</span></span>
+            <span class="tag tag-lg">Docker <span style="color:var(--text3);font-size:.75rem;">(6)</span></span>
+            <span class="tag tag-lg">Python <span style="color:var(--text3);font-size:.75rem;">(5)</span></span>
+            <span class="tag tag-lg">CSS <span style="color:var(--text3);font-size:.75rem;">(4)</span></span>
+            <span class="tag tag-lg">TypeScript <span style="color:var(--text3);font-size:.75rem;">(4)</span></span>
+            <span class="tag tag-lg">Node.js <span style="color:var(--text3);font-size:.75rem;">(3)</span></span>
+            <span class="tag tag-lg">数据库 <span style="color:var(--text3);font-size:.75rem;">(3)</span></span>
+            <span class="tag tag-lg">DevOps <span style="color:var(--text3);font-size:.75rem;">(3)</span></span>
+            <span class="tag tag-lg">Go <span style="color:var(--text3);font-size:.75rem;">(2)</span></span>
+            <span class="tag tag-lg">Vim <span style="color:var(--text3);font-size:.75rem;">(2)</span></span>
+            <span class="tag tag-lg">Kubernetes <span style="color:var(--text3);font-size:.75rem;">(2)</span></span>
+            <span class="tag tag-lg">架构 <span style="color:var(--text3);font-size:.75rem;">(2)</span></span>
+            <span class="tag tag-lg">Git <span style="color:var(--text3);font-size:.75rem;">(2)</span></span>
+            <span class="tag tag-lg">Linux <span style="color:var(--text3);font-size:.75rem;">(2)</span></span>
+            <span class="tag tag-lg">Rust <span style="color:var(--text3);font-size:.75rem;">(1)</span></span>
+            <span class="tag tag-lg">杂谈 <span style="color:var(--text3);font-size:.75rem;">(4)</span></span>
+        </div>
+
+        <div class="side-section">
+            <h4 style="font-size:.82rem;">按分类浏览</h4>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-top:12px;">
+                <div class="pinned-box" style="padding:20px; text-align:center; cursor:pointer;" onclick="navigate('archive')">
+                    <div style="font-size:28px; margin-bottom:6px;">🚀</div>
+                    <div style="font-weight:600; font-size:.9rem;">后端开发</div>
+                    <div style="font-size:.75rem; color:var(--text3);">12 篇文章</div>
+                </div>
+                <div class="pinned-box" style="padding:20px; text-align:center; cursor:pointer;" onclick="navigate('archive')">
+                    <div style="font-size:28px; margin-bottom:6px;">🎨</div>
+                    <div style="font-weight:600; font-size:.9rem;">前端技术</div>
+                    <div style="font-size:.75rem; color:var(--text3);">10 篇文章</div>
+                </div>
+                <div class="pinned-box" style="padding:20px; text-align:center; cursor:pointer;" onclick="navigate('archive')">
+                    <div style="font-size:28px; margin-bottom:6px;">⚙️</div>
+                    <div style="font-weight:600; font-size:.9rem;">DevOps</div>
+                    <div style="font-size:.75rem; color:var(--text3);">8 篇文章</div>
+                </div>
+                <div class="pinned-box" style="padding:20px; text-align:center; cursor:pointer;" onclick="navigate('archive')">
+                    <div style="font-size:28px; margin-bottom:6px;">📖</div>
+                    <div style="font-weight:600; font-size:.9rem;">阅读与思考</div>
+                    <div style="font-size:.75rem; color:var(--text3);">7 篇文章</div>
+                </div>
+                <div class="pinned-box" style="padding:20px; text-align:center; cursor:pointer;" onclick="navigate('archive')">
+                    <div style="font-size:28px; margin-bottom:6px;">🛠️</div>
+                    <div style="font-weight:600; font-size:.9rem;">工具与效率</div>
+                    <div style="font-size:.75rem; color:var(--text3);">5 篇文章</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PAGE: ABOUT ====== -->
+    <div id="page-about" class="page">
+        <div class="about-card">
+            <div class="flex flex-col sm:flex-row items-start gap-6 mb-8">
+                <div class="avatar-lg">风</div>
+                <div>
+                    <h1 style="font-size:1.8rem; font-weight:700; letter-spacing:-.01em; margin-bottom:4px;">风屿</h1>
+                    <p style="font-family:'Inter',sans-serif; font-size:.88rem; color:var(--text2); margin-bottom:8px;">全栈开发者 · 效率控 · 终身学习者</p>
+                    <p style="font-size:.92rem; color:var(--text2); line-height:1.8; max-width:520px;">
+                        热爱技术与创造，专注于 Web 开发与云原生架构。相信优雅的代码能改变世界，
+                        在键盘声中寻找心流体验。业余时间喜欢读书、跑步和折腾各种效率工具。
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4 mb-8">
+                <span class="tag">📧 windisland@email.com</span>
+                <span class="tag">🐙 github.com/wind-island</span>
+                <span class="tag">🐦 @wind_island</span>
+            </div>
+
+            <div class="divider" style="height:1px; background:var(--border-l); margin:24px 0;"></div>
+
+            <h2 style="font-size:1.2rem; font-weight:600; margin-bottom:16px;">📋 经历</h2>
+            <div class="timeline-item">
+                <div class="year">2026</div>
+                <div>
+                    <div style="font-weight:600; font-size:.92rem;">自由职业 · 独立开发者</div>
+                    <div style="font-size:.82rem; color:var(--text2);">专注于个人项目与开源贡献</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="year">2024-25</div>
+                <div>
+                    <div style="font-weight:600; font-size:.92rem;">高级前端工程师 · 某独角兽公司</div>
+                    <div style="font-size:.82rem; color:var(--text2);">负责核心产品的前端架构与性能优化</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="year">2022-23</div>
+                <div>
+                    <div style="font-weight:600; font-size:.92rem;">全栈开发 · 创业公司</div>
+                    <div style="font-size:.82rem; color:var(--text2);">从零搭建产品，经历从 0 到 1 的完整过程</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="year">2021</div>
+                <div>
+                    <div style="font-weight:600; font-size:.92rem;">计算机科学 · 本科毕业</div>
+                    <div style="font-size:.82rem; color:var(--text2);">开始写技术博客，至今累计 42 篇</div>
+                </div>
+            </div>
+
+            <div class="divider" style="height:1px; background:var(--border-l); margin:24px 0;"></div>
+
+            <h2 style="font-size:1.2rem; font-weight:600; margin-bottom:16px;">🛠️ 技术栈</h2>
+            <div class="flex flex-wrap gap-2 mb-6">
+                <span class="tag">React / Next.js</span>
+                <span class="tag">TypeScript</span>
+                <span class="tag">Node.js</span>
+                <span class="tag">Python</span>
+                <span class="tag">Go</span>
+                <span class="tag">Docker / K8s</span>
+                <span class="tag">PostgreSQL</span>
+                <span class="tag">Redis</span>
+                <span class="tag">AWS</span>
+                <span class="tag">Tailwind CSS</span>
+            </div>
+
+            <div class="divider" style="height:1px; background:var(--border-l); margin:24px 0;"></div>
+
+            <h2 style="font-size:1.2rem; font-weight:600; margin-bottom:12px;">📚 最近在读</h2>
+            <div style="display:flex; align-items:center; gap:16px; padding:16px; border-radius:12px; background:var(--bg);">
+                <div style="font-size:32px;">📖</div>
+                <div>
+                    <div style="font-weight:600; font-size:.92rem;">《计算机程序的构造与解释》(SICP)</div>
+                    <div style="font-size:.8rem; color:var(--text2);">Harold Abelson · 进度 45%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== PAGE: POST DETAIL (template) ====== -->
+    <div id="page-post" class="page post-detail">
+        <a class="back-link" onclick="navigate('home')">← 返回首页</a>
+        <div id="post-content">
+            <!-- Dynamically filled by JS -->
+        </div>
+    </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="max-w-5xl mx-auto px-6 py-8">
+    <div class="pt-6" style="border-top:1px solid var(--border-l);">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div style="font-size:.82rem; color:var(--text3);">© 2026 风屿 · 用 ❤️ 与 ☕ 书写</div>
+            <div class="flex items-center gap-6 text-sm" style="color:var(--text3);">
+                <a class="hover:text-[var(--text)] transition-colors no-underline" style="cursor:pointer;" onclick="navigate('about')">关于</a>
+                <a class="hover:text-[var(--text)] transition-colors no-underline" style="cursor:pointer;" onclick="navigate('archive')">归档</a>
+                <a class="hover:text-[var(--text)] transition-colors no-underline" style="cursor:pointer;" onclick="navigate('tags')">标签</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// ====== Post database ======
+const posts = {
+    1: {
+        category: '杂谈',
+        title: '从零搭建个人博客：我的技术栈选择与思考',
+        date: '2026.04.30',
+        readTime: '6 min',
+        tags: ['杂谈'],
+        content: `
+            <h2>为什么写博客</h2>
+            <p>距离我第一次搭建个人博客，已经过去五年了。这五年间，我从一个只会写 HTML 的初学者，成长为一名全栈开发者。博客见证了我的每一次进步，也记录下了无数个深夜 debug 的瞬间。</p>
+            <p>今年年初，我决定彻底重构我的博客。不是因为对旧版不满意，而是想用这五年来学到的东西，打造一个真正让自己满意的创作空间。</p>
+
+            <h2>技术选型</h2>
+            <p>市面上有非常多的博客方案——WordPress、Hexo、Hugo、Ghost、Notion……每一个都有各自的优缺点。但这次我想要的是：</p>
+            <blockquote>极致的加载速度 + 完全可控的样式 + 纯粹的写作体验</blockquote>
+            <p>最终，我选择了最简单也最直接的方式：<strong>纯 HTML + Tailwind CSS + Nginx</strong>。没有框架、没有构建工具、没有数据库。每一行代码都在我的掌控之中。</p>
+
+            <h2>部署架构</h2>
+            <p>服务器用的是阿里云轻量应用服务器，2C4G 的配置对于个人博客来说绰绰有余。用 Docker 部署 Nginx 作为反向代理，再配合 GitHub Actions 实现自动化部署。</p>
+            <pre>git push → GitHub Actions → build → SCP → reload nginx</pre>
+            <p>每次提交代码后，大约 15 秒就能看到更新。这种即时反馈的体验让人上瘾。</p>
+
+            <h2>写在最后</h2>
+            <p>技术博客的核心永远是内容，而不是技术本身。无论使用什么工具，能持续产出有价值的内容才是最重要的。这个博客会继续记录我的技术成长与生活思考，希望也能给你带来一些启发。</p>
+            <p style="color:var(--text3);">—— 2026 年春，于上海</p>
+        `
+    },
+    2: {
+        category: 'Docker',
+        title: 'Docker 容器化部署最佳实践',
+        date: '2026.04.28',
+        readTime: '5 min',
+        tags: ['Docker','DevOps'],
+        content: `
+            <h2>为什么需要容器化</h2>
+            <p>在微服务架构盛行的今天，容器化已经成为后端开发的标配技能。Docker 不仅解决了"在我电脑上能跑"的经典问题，还让部署、扩展和迁移变得前所未有的简单。</p>
+
+            <h2>多阶段构建</h2>
+            <p>以 Go 应用为例，用多阶段构建可以将最终镜像从 1.2GB 缩减到 15MB：</p>
+            <pre># 构建阶段
+FROM golang:1.22 AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o server
+
+# 运行阶段
+FROM alpine:3.19
+COPY --from=builder /app/server /server
+EXPOSE 8080
+CMD ["/server"]</pre>
+
+            <h2>健康检查</h2>
+            <p>在 docker-compose.yml 中配置健康检查，可以让容器编排工具自动管理容器的生命周期：</p>
+            <pre>healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3</pre>
+
+            <h2>镜像瘦身技巧</h2>
+            <p>几个实用的小技巧：使用 Alpine 基础镜像、清理 apt/yum 缓存、合并 RUN 指令、使用 .dockerignore 排除无用文件。综合运用这些技巧，通常可以将镜像体积减少 60% 以上。</p>
+        `
+    },
+    3: {
+        category: 'React',
+        title: 'React 18 并发模式：告别卡顿',
+        date: '2026.04.25',
+        readTime: '8 min',
+        tags: ['React','TypeScript'],
+        content: `
+            <h2>并发模式解决了什么问题</h2>
+            <p>在 React 18 之前，所有的状态更新都是同步的。这意味着当一次更新需要渲染大量组件时，用户界面会出现明显的卡顿——点击按钮后，页面会短暂地"冻住"。</p>
+            <p>并发模式（Concurrent Mode）的核心思想是：<strong>可中断的渲染</strong>。React 可以在渲染过程中暂停，处理更高优先级的更新，然后再回来继续。</p>
+
+            <h2>useTransition 实战</h2>
+            <p>useTransition 是并发模式中最常用的 API。它可以将某些更新标记为"低优先级"，确保高优先级更新（如用户输入）立即响应：</p>
+            <pre>import { useTransition, useState } from 'react';
+
+function SearchPage() {
+  const [query, setQuery] = useState('');
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(e) {
+    // 高优先级：更新输入框
+    setQuery(e.target.value);
+    // 低优先级：过滤大量列表
+    startTransition(() => {
+      setFilteredResults(filterData(e.target.value));
+    });
+  }
+
+  return (
+    <div>
+      <input value={query} onChange={handleChange} />
+      {isPending && <Spinner />}
+      <ResultList items={filteredResults} />
+    </div>
+  );
+}</pre>
+
+            <h2>使用场景</h2>
+            <p>并发模式在以下场景中特别有用：大量列表的过滤排序、表格数据切换、页面切换动画、图表重渲染。如果你的应用在这些场景下感到卡顿，并发模式可能就是你要找的解决方案。</p>
+        `
+    },
+    4: {
+        category: 'Python',
+        title: 'Python 异步编程入门指北',
+        date: '2026.04.22',
+        readTime: '6 min',
+        tags: ['Python'],
+        content: `
+            <h2>同步 vs 异步</h2>
+            <p>传统的同步代码就像在餐厅排队——一个人必须等前面的人完成了才能开始。而异步编程允许程序在等待 I/O 操作时去做其他事情，就像在咖啡店——点完单后你可以去旁边坐着，咖啡好了店员会叫你。</p>
+
+            <h2>一个简单的爬虫示例</h2>
+            <p>来看一个实际的例子，用 aiohttp 实现并发请求：</p>
+            <pre>import asyncio
+import aiohttp
+
+async def fetch_url(session, url):
+    async with session.get(url) as response:
+        return await response.text()
+
+async def main():
+    urls = [
+        'https://api.example.com/data/1',
+        'https://api.example.com/data/2',
+        'https://api.example.com/data/3',
+    ]
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_url(session, url) for url in urls]
+        results = await asyncio.gather(*tasks)
+    return results
+
+# 运行
+data = asyncio.run(main())</pre>
+            <p>这段代码可以同时发起三个请求，总耗时等于最慢的那个请求，而不是三个请求的时间之和。</p>
+
+            <h2>注意事项</h2>
+            <p>异步编程不是银弹。CPU 密集型任务用异步不仅不会提速，反而会带来额外的开销。这种情况下应该使用多进程（multiprocessing）或者直接同步执行。</p>
+        `
+    },
+    5: {
+        category: 'CSS',
+        title: 'CSS 命名规范的艺术',
+        date: '2026.04.18',
+        readTime: '4 min',
+        tags: ['CSS'],
+        content: `
+            <h2>命名是编程中最难的事</h2>
+            <p>这句话在 CSS 中尤其成立。一个大型项目的样式文件可能有上万行，如果没有良好的命名规范，维护起来将是一场噩梦。</p>
+
+            <h2>主流方案对比</h2>
+            <p><strong>BEM</strong>（Block Element Modifier）是最经典的方案：</p>
+            <pre>.card { }
+.card__title { }
+.card__title--highlighted { }</pre>
+            <p><strong>Utility-First</strong>（如 Tailwind CSS）则走了完全不同的路线：</p>
+            <pre><div class="flex items-center gap-4 p-6 rounded-xl shadow-sm"></pre>
+            <p>还有 CSS Modules、CSS-in-JS、Scoped Styles 等方案，各有适用场景。</p>
+
+            <h2>我的选择</h2>
+            <p>个人项目我用 Tailwind CSS，开发效率极高。团队项目则倾向于 BEM + SCSS，可读性和可维护性更好。没有最好的方案，只有最适合的。</p>
+        `
+    },
+    6: {
+        category: '数据库',
+        title: 'PostgreSQL 索引优化实战',
+        date: '2026.04.15',
+        readTime: '7 min',
+        tags: ['数据库'],
+        content: `
+            <h2>一个慢查询引发的思考</h2>
+            <p>上个月生产环境有个接口响应时间突然从 50ms 飙升到 3 秒。定位后发现是一条 SQL 查询走了全表扫描，数据量已经涨到了 500 万行。</p>
+            <p>用 EXPLAIN ANALYZE 一看：</p>
+            <pre>Seq Scan on orders  (cost=0.00..48231.00 rows=5000000 width=120)
+  Filter: (status = 'pending')</pre>
+            <p>全表扫描，5 秒。加上索引后：</p>
+            <pre>Index Scan using idx_orders_status on orders  (cost=0.43..2850.00 rows=15000 width=120)</pre>
+            <p>3 毫秒。从 5 秒到 3 毫秒，一千六百倍的提升。</p>
+
+            <h2>索引类型选择</h2>
+            <p>B-tree：最通用，适用于等值查询和范围查询。Hash：仅适用于等值查询。GiST：适用于全文搜索和空间数据。GIN：适用于数组和 JSONB 的包含查询。</p>
+
+            <h2>注意事项</h2>
+            <p>索引不是越多越好。每个索引都会增加写入开销，并在执行查询时增加优化器的选择成本。建议只给高频查询的字段加索引，并定期用 pg_stat_user_indexes 检查索引使用率。</p>
+        `
+    },
+    7: {
+        category: 'DevOps',
+        title: 'GitHub Actions + Docker 自动化部署',
+        date: '2026.04.10',
+        readTime: '6 min',
+        tags: ['DevOps','Docker'],
+        content: `
+            <h2>从手动到自动</h2>
+            <p>以前部署一台服务器需要：SSH 登录 → git pull → 构建 → 重启服务。偶尔还会忘记某个步骤导致线上故障。有了 CI/CD 流水线之后，推送代码到 main 分支就能自动完成一切。</p>
+
+            <h2>工作流配置</h2>
+            <pre>name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t my-app .
+      - name: Deploy to server
+        run: |
+          docker save my-app | ssh user@server 'docker load && docker compose up -d'</pre>
+
+            <h2>总结</h2>
+            <p>自动化部署最大的价值不是省去那几分钟的手动操作，而是让部署变得可重复、可追溯、不出错。每次部署都是一个版本化的、完全一致的流程。</p>
+        `
+    }
+};
+
+// Default content for posts that don't have full content
+function getDefaultContent(postId) {
+    const categories = ['前端', '后端', '工具', '架构', '阅读'];
+    const cat = categories[postId % categories.length];
+    return `
+        <h2>文章 #${postId}</h2>
+        <p>这是一篇关于 ${cat} 的技术文章。内容正在持续更新中，敬请期待完整的文章内容。</p>
+        <p>如果你对这个话题感兴趣，欢迎通过邮件或 GitHub 与我交流讨论。</p>
+        <blockquote>好的文章需要时间的沉淀。感谢你的耐心等待。</blockquote>
+        <p style="color:var(--text3);">—— 风屿</p>
+    `;
+}
+
+// ====== Navigation ======
+function navigate(page, param) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+    // Update nav
+    document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+
+    if (page === 'home') {
+        document.getElementById('page-home').classList.add('active');
+        document.querySelector('[data-nav="home"]')?.classList.add('active');
+        window.scrollTo({top:0});
+    } else if (page === 'archive') {
+        document.getElementById('page-archive').classList.add('active');
+        document.querySelector('[data-nav="archive"]')?.classList.add('active');
+        window.scrollTo({top:0});
+    } else if (page === 'tags') {
+        document.getElementById('page-tags').classList.add('active');
+        document.querySelector('[data-nav="tags"]')?.classList.add('active');
+        window.scrollTo({top:0});
+    } else if (page === 'about') {
+        document.getElementById('page-about').classList.add('active');
+        document.querySelector('[data-nav="about"]')?.classList.add('active');
+        window.scrollTo({top:0});
+    } else if (page === 'post') {
+        document.getElementById('page-post').classList.add('active');
+        // No nav highlight for post
+        const post = posts[param] || { title: '文章', date: '', readTime: '', tags: [], category: '', content: getDefaultContent(param) };
+        document.getElementById('post-content').innerHTML = `
+            <div class="pinned-box" style="margin-bottom:24px;">
+                <div class="tag-label">${post.category || '未分类'}</div>
+                <h1>${post.title}</h1>
+                <div class="meta-line">
+                    <span>📅 ${post.date}</span>
+                    <span>📖 ${post.readTime}</span>
+                    ${post.tags ? post.tags.map(t => `<span style="color:var(--accent);">#${t}</span>`).join('') : ''}
+                </div>
+            </div>
+            <div class="content">${post.content || getDefaultContent(param)}</div>
+        `;
+        window.scrollTo({top:0});
+    }
+
+    // Store state in hash
+    if (param) {
+        window.location.hash = `${page}/${param}`;
+    } else {
+        window.location.hash = page;
+    }
+}
+
+// ====== Handle hash on load ======
+function handleHash() {
+    const hash = window.location.hash.slice(1) || 'home';
+    const parts = hash.split('/');
+    if (parts[0] === 'post' && parts[1]) {
+        navigate('post', parseInt(parts[1]));
+    } else if (['home','archive','tags','about'].includes(parts[0])) {
+        navigate(parts[0]);
+    } else {
+        navigate('home');
+    }
+}
+window.addEventListener('hashchange', handleHash);
+window.addEventListener('load', handleHash);
+
+// ====== Back to top ======
+const btn = document.getElementById('back-top');
+window.addEventListener('scroll', () => {
+    btn.classList.toggle('show', window.scrollY > 400);
+});
+</script>
+</body>
+</html>

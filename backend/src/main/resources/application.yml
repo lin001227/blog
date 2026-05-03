@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:3306/blog?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai
+    username: blog
+    password: blog123
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        format_sql: true
+
+app:
+  jwt:
+    secret: "Y29vbC1ibG9nLWp3dC1zZWNyZXQta2V5LWZvci1ibG9nLWFwcC0yMDI2LXByb2R1Y3Rpb24t"
+    expiration-ms: 86400000  # 24 hours
