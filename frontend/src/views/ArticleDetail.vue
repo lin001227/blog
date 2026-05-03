@@ -36,12 +36,26 @@
             <span class="tag" v-for="tag in tagsList" :key="tag">{{ tag }}</span>
           </div>
 
-          <div class="article-content" v-html="renderedContent"></div>
+          <div class="article-content" v-html="contentWithAnchors"></div>
         </article>
 
         <div class="article-footer">
           <router-link to="/" class="back-link">← 返回首页</router-link>
         </div>
+
+        <!-- TOC Sidebar (Desktop) -->
+        <aside class="toc-sidebar" v-if="tocItems.length > 0">
+          <div class="toc-title">目录</div>
+          <nav class="toc-nav">
+            <a
+              v-for="(item, i) in tocItems"
+              :key="i"
+              :href="'#' + item.id"
+              :class="['toc-link', 'toc-level-' + item.level]"
+              @click.prevent="scrollToHeading(item.id)"
+            >{{ item.text }}</a>
+          </nav>
+        </aside>
 
         <!-- Comment Section -->
         <div class="comment-section">
@@ -68,8 +82,11 @@
           <div v-if="comments.length === 0" class="comment-empty">暂无评论，快来抢沙发吧~</div>
           <div v-for="comment in comments" :key="comment.id" class="comment-item">
             <div class="comment-header">
-              <span class="comment-nickname">{{ comment.nickname }}</span>
-              <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
+              <span class="comment-avatar" :style="{ background: nameColor(comment.nickname) }">{{ comment.nickname.charAt(0) }}</span>
+              <div class="comment-header-info">
+                <span class="comment-nickname">{{ comment.nickname }}</span>
+                <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
+              </div>
             </div>
             <div class="comment-body">{{ comment.content }}</div>
           </div>
@@ -125,6 +142,80 @@ const renderedContent = computed(() => {
   return article.value.content
 })
 
+// --- Open Graph ---
+function updateMetaTags(article) {
+  const title = article ? `${article.title} - 风屿 · 随笔` : '风屿 · 随笔'
+  const description = article
+    ? (article.content ? article.content.replace(/<[^>]*>/g, '').replace(/[#*\\[\\]`>|-]/g, ' ').trim().substring(0, 200) : '')
+    : '记录思考，分享见解，在文字中找到宁静。'
+
+  document.title = title
+  setMeta('og:title', title)
+  setMeta('og:description', description)
+  setMeta('og:url', window.location.href)
+  setMeta('twitter:title', title)
+  setMeta('twitter:description', description)
+  setMeta('name', 'description', description)
+}
+function setMeta(property, content, attr) {
+  const prop = attr || 'property'
+  let el = document.querySelector(`meta[${prop}="${property}"]`)
+  if (!el) {
+    el = document.createElement('meta')
+    el.setAttribute(prop, property)
+    document.head.appendChild(el)
+  }
+  el.setAttribute('content', content)
+}
+
+// --- TOC ---
+function generateId(text, index) {
+  return 'heading-' + index + '-' + text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-|-$/g, '')
+}
+
+const contentWithAnchors = computed(() => {
+  const html = article.value?.content || ''
+  // Add IDs to h1, h2, h3 for TOC anchors
+  let counter = 0
+  return html.replace(/<h([123])(.*?)>(.*?)<\/h[123]>/gi, (match, level, attrs, text) => {
+    const id = generateId(text.replace(/<[^>]*>/g, ''), counter++)
+    return `<h${level} id="${id}">${text}</h${level}>`
+  })
+})
+
+const tocItems = computed(() => {
+  const html = article.value?.content || ''
+  const items = []
+  let counter = 0
+  const regex = /<h([123])(.*?)>(.*?)<\/h[123]>/gi
+  let m
+  while ((m = regex.exec(html)) !== null) {
+    const level = parseInt(m[1])
+    const text = m[3].replace(/<[^>]*>/g, '')
+    const id = generateId(text, counter++)
+    items.push({ id, level, text })
+  }
+  return items
+})
+
+function scrollToHeading(id) {
+  const el = document.getElementById(id)
+  if (el) {
+    const top = el.getBoundingClientRect().top + window.scrollY - 100
+    window.scrollTo({ top, behavior: 'smooth' })
+  }
+}
+
+const COLORS = ['#f56a00','#7265e6','#ffbf00','#00a854','#108ee9','#cd5c5c','#7b68ee','#20b2aa','#ff6347','#9370db','#3cb371','#ff8c00','#48d1cc','#c71585','#2e8b57','#d2691e','#6495ed','#dc143c','#00ced1','#daa520']
+
+function nameColor(name) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return COLORS[Math.abs(hash) % COLORS.length]
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
@@ -162,6 +253,7 @@ onMounted(async () => {
     ])
     article.value = articleRes.data
     comments.value = commentsRes.data || []
+    updateMetaTags(article.value)
   } catch (e) {
     console.error('Failed to load:', e)
   } finally {
@@ -504,6 +596,24 @@ onMounted(async () => {
   gap: 12px;
   margin-bottom: 8px;
 }
+.comment-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  user-select: none;
+}
+.comment-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .comment-nickname {
   font-size: 14px;
   font-weight: 600;
@@ -517,5 +627,57 @@ onMounted(async () => {
   font-size: 14px;
   line-height: 1.7;
   color: var(--text-body);
+}
+
+/* TOC Sidebar */
+.toc-sidebar {
+  position: fixed;
+  top: 50%;
+  right: max(calc((100vw - 740px) / 2 - 280px), 16px);
+  transform: translateY(-50%);
+  width: 220px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 16px 0;
+  box-shadow: var(--shadow-card);
+  transition: background 0.3s ease;
+}
+.toc-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0 16px 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+  font-family: 'Noto Serif SC', serif;
+}
+.toc-nav {
+  display: flex;
+  flex-direction: column;
+}
+.toc-link {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 5px 16px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  line-height: 1.5;
+  word-break: break-all;
+}
+.toc-link:hover {
+  color: var(--text-accent);
+  background: var(--bg-toc-hover);
+  border-left-color: var(--text-accent);
+}
+.toc-level-2 { padding-left: 26px; font-size: 12.5px; }
+.toc-level-3 { padding-left: 36px; font-size: 12px; }
+
+/* Hide TOC on narrow screens */
+@media (max-width: 1300px) {
+  .toc-sidebar { display: none; }
 }
 </style>

@@ -27,3 +27,7 @@ export function deleteArticle(id) {
 export function getArchive() {
   return request.get('/articles/archive')
 }
+
+export function searchArticles(q) {
+  return request.get('/articles/search', { params: { q } })
+}

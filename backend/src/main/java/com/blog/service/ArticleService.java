@@ -128,4 +128,15 @@ public class ArticleService {
                 .orElseThrow(() -> new RuntimeException("Article not found"));
         articleRepository.delete(article);
     }
+
+    @Transactional(readOnly = true)
+    public List<ArticleResponse> searchArticles(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return List.of();
+        }
+        return articleRepository.searchByKeyword(query.trim())
+                .stream()
+                .map(ArticleResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 }

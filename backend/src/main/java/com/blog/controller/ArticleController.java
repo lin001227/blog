@@ -31,6 +31,11 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getArchive());
     }
 
+    @GetMapping("/api/articles/search")
+    public ResponseEntity<List<ArticleResponse>> searchArticles(@RequestParam String q) {
+        return ResponseEntity.ok(articleService.searchArticles(q));
+    }
+
     @GetMapping("/api/articles/{id}")
     public ResponseEntity<?> getArticle(@PathVariable Long id) {
         try {

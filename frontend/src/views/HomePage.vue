@@ -7,6 +7,7 @@
         <div class="nav-links">
           <router-link class="nav-link" to="/">首页</router-link>
           <router-link class="nav-link" to="/archive">归档</router-link>
+          <a class="nav-link" href="/api/rss" target="_blank" title="RSS 订阅">RSS</a>
           <router-link class="nav-link" to="/admin/login">管理</router-link>
           <button class="dark-toggle" @click="toggleDark" :title="isDark ? '切换亮色模式' : '切换暗色模式'">
             {{ isDark ? '☀️' : '🌙' }}
@@ -20,10 +21,46 @@
       <div class="hero-inner">
         <h1 class="hero-title">风屿 · 随笔</h1>
         <p class="hero-subtitle">记录思考，分享见解，在文字中找到宁静。</p>
+        <!-- Search Bar -->
+        <div class="search-box">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="搜索文章..."
+            class="search-input"
+            @keyup.enter="doSearch"
+          />
+          <button class="search-btn" @click="doSearch">{{ searching ? '搜索中...' : '🔍' }}</button>
+        </div>
       </div>
     </section>
 
-    <div class="main-layout" v-if="articles.length > 0">
+    <div class="main-layout" v-if="searchResults !== null">
+      <!-- Search Results -->
+      <main class="content">
+        <div class="section-title">
+          搜索结果：{{ searchQuery ? `"${searchQuery}"` : '' }}
+          <span class="result-count">共 {{ searchResults.length }} 条</span>
+        </div>
+        <div v-if="searchResults.length === 0" class="loading-text">未找到相关文章</div>
+        <article v-for="article in searchResults" :key="article.id" class="article-card">
+          <h2 class="article-title">
+            <router-link :to="`/article/${article.id}`">{{ article.title }}</router-link>
+          </h2>
+          <div class="article-meta">
+            <span>{{ formatDate(article.createdAt) }}</span>
+            <span v-if="article.category"> · {{ article.category }}</span>
+          </div>
+          <p class="article-excerpt">{{ excerpt(article.content) }}</p>
+          <router-link :to="`/article/${article.id}`" class="read-more">阅读全文 →</router-link>
+        </article>
+        <div style="text-align:center;padding:20px 0;">
+          <button class="back-to-home" @click="clearSearch">← 返回全部文章</button>
+        </div>
+      </main>
+    </div>
+
+    <div class="main-layout" v-else-if="articles.length > 0">
       <!-- Main Content -->
       <main class="content">
         <!-- Pinned Article -->
@@ -109,12 +146,37 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getArticles } from '../api/articles'
+import { searchArticles } from '../api/articles'
 import { useDarkMode } from '../composables/useDarkMode'
 
 const { isDark, toggleDark } = useDarkMode()
 
 const articles = ref([])
 const loading = ref(true)
+
+// Search
+const searchQuery = ref('')
+const searchResults = ref(null)
+const searching = ref(false)
+
+async function doSearch() {
+  const q = searchQuery.value.trim()
+  if (!q) return
+  searching.value = true
+  try {
+    const res = await searchArticles(q)
+    searchResults.value = res.data || []
+  } catch (e) {
+    console.error('Search failed:', e)
+    searchResults.value = []
+  } finally {
+    searching.value = false
+  }
+}
+function clearSearch() {
+  searchQuery.value = ''
+  searchResults.value = null
+}
 
 const pinnedArticle = computed(() => articles.value.find(a => a.pinned))
 const regularArticles = computed(() => articles.value.filter(a => !a.pinned))
@@ -256,6 +318,61 @@ onMounted(async () => {
   line-height: 1.7;
   font-weight: 400;
 }
+
+/* Search */
+.search-box {
+  display: flex;
+  max-width: 400px;
+  margin: 24px auto 0;
+  gap: 8px;
+}
+.search-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.search-input:focus {
+  border-color: var(--text-accent);
+}
+.search-btn {
+  width: 44px;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+.search-btn:hover {
+  border-color: var(--text-accent);
+  color: var(--text-accent);
+}
+.result-count {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 8px;
+}
+.back-to-home {
+  background: none;
+  border: none;
+  color: var(--text-accent);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 8px 16px;
+  transition: opacity 0.2s;
+}
+.back-to-home:hover { opacity: 0.7; }
 
 /* Main Layout */
 .main-layout {
