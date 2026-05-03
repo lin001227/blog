@@ -73,6 +73,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="category" label="分类" width="120" />
+        <el-table-column label="评论" width="80" align="center">
+          <template #default="{ row }">
+            {{ row.commentCount ?? 0 }}
+          </template>
+        </el-table-column>
         <el-table-column label="标签" width="180">
           <template #default="{ row }">
             <el-tag

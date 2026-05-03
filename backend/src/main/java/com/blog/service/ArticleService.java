@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.blog.dto.ArchiveResponse;
+import com.blog.entity.Comment;
+import com.blog.repository.CommentRepository;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,12 +22,13 @@ import static java.util.stream.Collectors.*;
 public class ArticleService {
 
     private final ArticleRepository articleRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional(readOnly = true)
     public List<ArticleResponse> getPublicArticles() {
         return articleRepository.findAllByOrderByPinnedDescCreatedAtDesc()
                 .stream()
-                .map(ArticleResponse::fromEntity)
+                .map(a -> ArticleResponse.fromEntity(a, (int) commentRepository.countByArticleIdAndStatus(a.getId(), "APPROVED")))
                 .collect(Collectors.toList());
     }
 
@@ -33,7 +36,7 @@ public class ArticleService {
     public List<ArticleResponse> getAdminArticles() {
         return articleRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
-                .map(ArticleResponse::fromEntity)
+                .map(a -> ArticleResponse.fromEntity(a, (int) commentRepository.countByArticleIdAndStatus(a.getId(), "APPROVED")))
                 .collect(Collectors.toList());
     }
 
@@ -41,7 +44,8 @@ public class ArticleService {
     public ArticleResponse getArticleById(Long id) {
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Article not found"));
-        return ArticleResponse.fromEntity(article);
+        int commentCount = (int) commentRepository.countByArticleIdAndStatus(id, "APPROVED");
+        return ArticleResponse.fromEntity(article, commentCount);
     }
 
     @Transactional
@@ -50,7 +54,8 @@ public class ArticleService {
                 .orElseThrow(() -> new RuntimeException("Article not found"));
         article.setViewCount(article.getViewCount() == null ? 1 : article.getViewCount() + 1);
         Article saved = articleRepository.save(article);
-        return ArticleResponse.fromEntity(saved);
+        int commentCount = (int) commentRepository.countByArticleIdAndStatus(id, "APPROVED");
+        return ArticleResponse.fromEntity(saved, commentCount);
     }
 
     @Transactional
@@ -63,7 +68,7 @@ public class ArticleService {
         article.setPinned(request.getPinned() != null && request.getPinned());
 
         Article saved = articleRepository.save(article);
-        return ArticleResponse.fromEntity(saved);
+        return ArticleResponse.fromEntity(saved, 0);
     }
 
     @Transactional
@@ -88,7 +93,8 @@ public class ArticleService {
         }
 
         Article saved = articleRepository.save(article);
-        return ArticleResponse.fromEntity(saved);
+        int commentCount = (int) commentRepository.countByArticleIdAndStatus(id, "APPROVED");
+        return ArticleResponse.fromEntity(saved, commentCount);
     }
 
     @Transactional(readOnly = true)
@@ -136,7 +142,7 @@ public class ArticleService {
         }
         return articleRepository.searchByKeyword(query.trim())
                 .stream()
-                .map(ArticleResponse::fromEntity)
+                .map(a -> ArticleResponse.fromEntity(a, (int) commentRepository.countByArticleIdAndStatus(a.getId(), "APPROVED")))
                 .collect(Collectors.toList());
     }
 }

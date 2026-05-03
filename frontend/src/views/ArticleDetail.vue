@@ -28,6 +28,7 @@
             <span v-if="article.category"> · {{ article.category }}</span>
             <span v-if="updatedText"> · {{ updatedText }}</span>
             <span class="view-count"> · 👁️ {{ article.viewCount ?? 0 }} 次阅读</span>
+            <span class="comment-count"> · 💬 {{ article.commentCount ?? 0 }} 条评论</span>
           </div>
 
           <div class="tags" v-if="article.tags && article.tags.length">
@@ -119,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getArticle } from '../api/articles'
 import { getArticleComments, createComment } from '../api/comments'
@@ -242,6 +243,23 @@ const activeTocId = ref('')
 const showMobileToc = ref(false)
 let tocObserver = null
 
+function setupCodeLangLabels() {
+  nextTick(() => {
+    document.querySelectorAll('.article-content pre code[class*="language-"]').forEach((code) => {
+      const pre = code.parentElement
+      if (!pre || pre.querySelector('.code-lang')) return
+      const lang = Array.from(code.classList)
+        .find(c => c.startsWith('language-'))
+        ?.replace('language-', '') || ''
+      if (!lang) return
+      const badge = document.createElement('span')
+      badge.className = 'code-lang'
+      badge.textContent = lang
+      pre.appendChild(badge)
+    })
+  })
+}
+
 function setupTocObserver() {
   // Wait for DOM to render headings with IDs
   nextTick(() => {
@@ -262,6 +280,20 @@ function setupTocObserver() {
 
 onBeforeUnmount(() => {
   if (tocObserver) tocObserver.disconnect()
+})
+
+// Auto-scroll TOC sidebar to active item
+watch(activeTocId, (id) => {
+  if (!id) return
+  // Desktop sidebar
+  const tocSidebar = document.querySelector('.toc-sidebar')
+  if (tocSidebar) {
+    const activeLink = tocSidebar.querySelector('.toc-link.active')
+    if (activeLink) {
+      activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }
+  // Mobile TOC - just update without auto-scroll (it's stacked inline)
 })
 
 const COLORS = ['#f56a00','#7265e6','#ffbf00','#00a854','#108ee9','#cd5c5c','#7b68ee','#20b2aa','#ff6347','#9370db','#3cb371','#ff8c00','#48d1cc','#c71585','#2e8b57','#d2691e','#6495ed','#dc143c','#00ced1','#daa520']
@@ -313,6 +345,7 @@ onMounted(async () => {
     comments.value = commentsRes.data || []
     updateMetaTags(article.value)
     setupTocObserver()
+    setupCodeLangLabels()
   } catch (e) {
     console.error('Failed to load:', e)
   } finally {
@@ -613,10 +646,17 @@ onMounted(async () => {
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
   border: 1px solid var(--border);
   transition: background 0.3s ease, border-color 0.3s ease;
+  scroll-behavior: smooth;
   z-index: 50;
 }
 .toc-sidebar::-webkit-scrollbar { width: 3px; }
 .toc-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.toc-sidebar::-webkit-scrollbar-track { background: transparent; }
+.toc-sidebar::after {
+  content: '';
+  display: block;
+  height: 12px;
+}
 .toc-title {
   font-size: 14px;
   font-weight: 600;
@@ -727,6 +767,22 @@ onMounted(async () => {
   margin-bottom: 20px;
   font-size: 14px;
   line-height: 1.6;
+  position: relative;
+}
+.article-content .code-lang {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-code);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  letter-spacing: 0.5px;
+  user-select: none;
+  pointer-events: none;
 }
 .article-content code {
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;

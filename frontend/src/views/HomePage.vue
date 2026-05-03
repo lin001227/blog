@@ -90,6 +90,7 @@
             <span v-if="article.category"> · {{ article.category }}</span>
             <span v-if="article.tags && article.tags.length"> · {{ article.tags }}</span>
             <span class="view-count"> · 👁️ {{ article.viewCount ?? 0 }} 阅读</span>
+            <span class="comment-count"> · 💬 {{ article.commentCount ?? 0 }}</span>
           </div>
           <p class="article-excerpt">{{ excerpt(article.content) }}</p>
           <router-link :to="`/article/${article.id}`" class="read-more">阅读全文 →</router-link>
