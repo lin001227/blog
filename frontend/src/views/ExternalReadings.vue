@@ -23,11 +23,6 @@
         shadow="hover"
       >
         <div class="card-inner">
-          <!-- Cover -->
-          <div v-if="article.coverUrl" class="card-cover">
-            <img :src="article.coverUrl" :alt="article.title" @error="onImgError" />
-          </div>
-
           <div class="card-body">
             <!-- Header -->
             <div class="card-header">
@@ -84,7 +79,10 @@
             size="small"
             effect="plain"
             style="margin:2px;cursor:pointer"
+            tabindex="0" role="button"
             @click="filterCategory = cat === filterCategory ? '' : cat"
+            @keydown.enter="filterCategory = cat === filterCategory ? '' : cat"
+            @keydown.space.prevent="filterCategory = cat === filterCategory ? '' : cat"
             :type="filterCategory === cat ? 'primary' : 'info'"
           >
             {{ cat }}
@@ -112,11 +110,6 @@ const articles = ref([])
 const loading = ref(true)
 const filterCategory = ref('')
 
-const filteredArticles = computed(() => {
-  if (!filterCategory.value) return articles.value
-  return articles.value.filter(a => a.category === filterCategory.value)
-})
-
 const uniqueSources = computed(() => {
   const sources = new Set(articles.value.map(a => a.source).filter(Boolean))
   return sources.size
@@ -141,10 +134,6 @@ function formatDate(dateStr) {
 
 function openUrl(url) {
   window.open(url, '_blank', 'noopener')
-}
-
-function onImgError(e) {
-  e.target.parentElement.style.display = 'none'
 }
 
 onMounted(async () => {
@@ -214,22 +203,9 @@ onMounted(async () => {
   padding: 0;
 }
 .card-inner {
-  display: flex;
-}
-.card-cover {
-  width: 200px;
-  min-height: 140px;
-  flex-shrink: 0;
   overflow: hidden;
-  background: var(--bg-tag);
-}
-.card-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 .card-body {
-  flex: 1;
   padding: 20px 22px;
 }
 .card-header {
@@ -362,12 +338,8 @@ onMounted(async () => {
   .sidebar {
     width: 100%;
   }
-  .card-inner {
-    flex-direction: column;
-  }
-  .card-cover {
-    width: 100%;
-    height: 160px;
+  .card-body {
+    padding: 16px;
   }
 }
 </style>

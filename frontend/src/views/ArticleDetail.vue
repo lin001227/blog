@@ -1,136 +1,141 @@
 <template>
   <div v-if="article">
-    <div class="article-container">
-      <router-link to="/" class="back-link">← 返回首页</router-link>
-
-        <article class="article">
-          <h1 class="article-title">{{ article.title }}</h1>
-
-          <div class="article-meta">
-            <span>{{ formatDate(article.createdAt) }}</span>
-            <span v-if="article.category"> · {{ article.category }}</span>
-            <span v-if="updatedText"> · {{ updatedText }}</span>
-            <span class="view-count"> · 👁️ {{ article.viewCount ?? 0 }} 次阅读</span>
-            <span class="comment-count"> · 💬 {{ article.commentCount ?? 0 }} 条评论</span>
-          </div>
-
-          <div class="tags" v-if="article.tags && article.tags.length">
-            <span class="tag" v-for="tag in tagsList" :key="tag">{{ tag }}</span>
-          </div>
-
-          <!-- Mobile TOC -->
-          <div class="mobile-toc" v-if="tocItems.length > 0">
-            <button class="mobile-toc-toggle" @click="showMobileToc = !showMobileToc">
-              📑 目录 <span class="toc-toggle-arrow" :class="{ open: showMobileToc }">▼</span>
-            </button>
-            <nav class="mobile-toc-nav" v-show="showMobileToc">
-              <a
-                v-for="(item, i) in tocItems" :key="i"
-                :href="'#' + item.id"
-                :class="['toc-link', 'toc-level-' + item.level]"
-                @click.prevent="scrollToHeading(item.id); showMobileToc = false"
-              >{{ item.text }}</a>
-            </nav>
-          </div>
-
-          <div class="article-content" v-html="contentWithAnchors"></div>
-        </article>
-
-        <div class="article-footer">
+    <div class="article-layout">
+      <!-- LEFT: article main content -->
+      <div class="article-main">
+        <div class="article-container">
           <router-link to="/" class="back-link">← 返回首页</router-link>
-        </div>
 
-        <!-- Desktop TOC Sidebar -->
-        <aside class="toc-sidebar" v-if="tocItems.length > 0">
-          <div class="toc-title">📑 目录</div>
-          <nav class="toc-nav">
-            <a
-              v-for="(item, i) in tocItems" :key="i"
-              :href="'#' + item.id"
-              :class="['toc-link', 'toc-level-' + item.level, { active: activeTocId === item.id }]"
-              @click.prevent="scrollToHeading(item.id)"
-            >{{ item.text }}</a>
-          </nav>
-        </aside>
+          <article class="article">
+            <h1 class="article-title">{{ article.title }}</h1>
 
-        <!-- Comment Section -->
-        <div class="comment-section">
-          <div class="comment-section-header">
-            <h3 class="comment-section-title">💬 评论 <span class="comment-count-badge">{{ comments.length }}</span></h3>
-          </div>
-
-          <!-- Comment Form -->
-          <div class="comment-form">
-            <div class="comment-form-card">
-              <div class="comment-form-row">
-                <el-input
-                  v-model="commentForm.nickname"
-                  placeholder="昵称 *"
-                  :maxlength="50"
-                  size="large"
-                  clearable
-                >
-                  <template #prefix><span style="opacity:0.5">👤</span></template>
-                </el-input>
-                <el-input
-                  v-model="commentForm.email"
-                  placeholder="邮箱（选填）"
-                  :maxlength="255"
-                  size="large"
-                  clearable
-                >
-                  <template #prefix><span style="opacity:0.5">📧</span></template>
-                </el-input>
-              </div>
-              <el-input
-                v-model="commentForm.content"
-                type="textarea"
-                placeholder="写下你的评论..."
-                :maxlength="2000"
-                :rows="4"
-                :autosize="{ minRows: 4, maxRows: 10 }"
-                show-word-limit
-                class="comment-textarea-el"
-              />
-              <div class="comment-form-actions">
-                <span></span>
-                <el-button type="primary" size="large" :loading="submittingComment" @click="submitComment">
-                  ✏️ 发表评论
-                </el-button>
-              </div>
-              <transition name="msg-fade">
-                <div v-if="commentError" class="comment-msg comment-msg-error">⚠️ {{ commentError }}</div>
-                <div v-if="commentSuccess" class="comment-msg comment-msg-success">✅ 评论已提交，等待审核后显示</div>
-              </transition>
+            <div class="article-meta">
+              <span>{{ formatDate(article.createdAt) }}</span>
+              <span v-if="article.category"> · {{ article.category }}</span>
+              <span v-if="updatedText"> · {{ updatedText }}</span>
+              <span class="view-count"> · 👁️ {{ article.viewCount ?? 0 }} 次阅读</span>
+              <span class="comment-count"> · 💬 {{ article.commentCount ?? 0 }} 条评论</span>
             </div>
+
+            <div class="tags" v-if="article.tags && article.tags.length">
+              <span class="tag" v-for="tag in tagsList" :key="tag">{{ tag }}</span>
+            </div>
+
+            <!-- Mobile TOC (shown on narrow screens) -->
+            <div class="mobile-toc" v-if="tocItems.length > 0">
+              <button class="mobile-toc-toggle" @click="showMobileToc = !showMobileToc">
+                📑 目录 <span class="toc-toggle-arrow" :class="{ open: showMobileToc }">▼</span>
+              </button>
+              <nav class="mobile-toc-nav" v-show="showMobileToc">
+                <a
+                  v-for="(item, i) in tocItems" :key="i"
+                  :href="'#' + item.id"
+                  :class="['toc-link', 'toc-level-' + item.level]"
+                  @click.prevent="scrollToHeading(item.id); showMobileToc = false"
+                >{{ item.text }}</a>
+              </nav>
+            </div>
+
+            <div class="article-content" v-html="contentWithAnchors"></div>
+          </article>
+
+          <div class="article-footer">
+            <router-link to="/" class="back-link">← 返回首页</router-link>
           </div>
 
-          <!-- Comment List -->
-          <div v-if="comments.length === 0" class="comment-empty">
-            <div class="comment-empty-icon">💬</div>
-            <p class="comment-empty-text">暂无评论，快来抢沙发吧~</p>
-          </div>
-          <div v-else class="comment-list">
-            <div v-for="comment in comments" :key="comment.id" class="comment-item" :class="{ 'comment-item-pinned': comment.pinned }">
-              <div v-if="comment.pinned" class="comment-pinned-tag"><span>📌</span> 置顶评论</div>
-              <div class="comment-main">
-                <div class="comment-header">
-                  <span class="comment-avatar" :style="{ background: nameColor(comment.nickname) }">{{ comment.nickname.charAt(0) }}</span>
-                  <div class="comment-header-info">
-                    <span class="comment-nickname">{{ comment.nickname }}</span>
-                    <span class="comment-time">
-                      <span class="comment-relative-time">{{ formatRelativeTime(comment.createdAt) }}</span>
-                      <span class="comment-time-sep">·</span>
-                      <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
-                    </span>
-                  </div>
+          <!-- Comment Section -->
+          <div class="comment-section">
+            <div class="comment-section-header">
+              <h3 class="comment-section-title">💬 评论 <span class="comment-count-badge">{{ comments.length }}</span></h3>
+            </div>
+
+            <!-- Comment Form -->
+            <div class="comment-form">
+              <div class="comment-form-card">
+                <div class="comment-form-row">
+                  <el-input
+                    v-model="commentForm.nickname"
+                    placeholder="昵称 *"
+                    :maxlength="50"
+                    size="large"
+                    clearable
+                  >
+                    <template #prefix><span style="opacity:0.5">👤</span></template>
+                  </el-input>
+                  <el-input
+                    v-model="commentForm.email"
+                    placeholder="邮箱（选填）"
+                    :maxlength="255"
+                    size="large"
+                    clearable
+                  >
+                    <template #prefix><span style="opacity:0.5">📧</span></template>
+                  </el-input>
                 </div>
-                <div class="comment-body">{{ comment.content }}</div>
+                <el-input
+                  v-model="commentForm.content"
+                  type="textarea"
+                  placeholder="写下你的评论..."
+                  :maxlength="2000"
+                  :rows="4"
+                  :autosize="{ minRows: 4, maxRows: 10 }"
+                  show-word-limit
+                  class="comment-textarea-el"
+                />
+                <div class="comment-form-actions">
+                  <span></span>
+                  <el-button type="primary" size="large" :loading="submittingComment" @click="submitComment">
+                    ✏️ 发表评论
+                  </el-button>
+                </div>
+                <transition name="msg-fade">
+                  <div v-if="commentError" class="comment-msg comment-msg-error">⚠️ {{ commentError }}</div>
+                  <div v-if="commentSuccess" class="comment-msg comment-msg-success">✅ 评论已提交，等待审核后显示</div>
+                </transition>
+              </div>
+            </div>
+
+            <!-- Comment List -->
+            <div v-if="comments.length === 0" class="comment-empty">
+              <div class="comment-empty-icon">💬</div>
+              <p class="comment-empty-text">暂无评论，快来抢沙发吧~</p>
+            </div>
+            <div v-else class="comment-list">
+              <div v-for="comment in comments" :key="comment.id" class="comment-item" :class="{ 'comment-item-pinned': comment.pinned }">
+                <div v-if="comment.pinned" class="comment-pinned-tag"><span>📌</span> 置顶评论</div>
+                <div class="comment-main">
+                  <div class="comment-header">
+                    <span class="comment-avatar" :style="{ background: nameColor(comment.nickname) }">{{ comment.nickname.charAt(0) }}</span>
+                    <div class="comment-header-info">
+                      <span class="comment-nickname">{{ comment.nickname }}</span>
+                      <span class="comment-time">
+                        <span class="comment-relative-time">{{ formatRelativeTime(comment.createdAt) }}</span>
+                        <span class="comment-time-sep">·</span>
+                        <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="comment-body">{{ comment.content }}</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- RIGHT: Desktop TOC sidebar -->
+      <aside class="toc-sidebar" v-if="tocItems.length > 0">
+        <div class="toc-title">📑 目录</div>
+        <nav class="toc-nav">
+          <a
+            v-for="(item, i) in tocItems" :key="i"
+            :href="'#' + item.id"
+            :class="['toc-link', 'toc-level-' + item.level, { active: activeTocId === item.id }]"
+            @click.prevent="scrollToHeading(item.id)"
+          >{{ item.text }}</a>
+        </nav>
+      </aside>
+    </div>
   </div>
 
   <div v-else-if="loading" class="loading">加载中...</div>
@@ -146,7 +151,7 @@ import { ElMessage } from 'element-plus'
 import { marked } from 'marked'
 
 // Configure marked for better rendering
-marked.setOptions({
+marked.use({
   breaks: true,
   gfm: true,
 })
@@ -392,12 +397,22 @@ onMounted(async () => {
 </script>
 
 <style>
+/* Article Page Layout - flex for sidebar */
+.article-layout {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+.article-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 780px;
+}
 
 /* Main */
-
 .article-container {
   background: var(--bg-card);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 40px;
   box-shadow: var(--shadow-card);
   transition: background 0.3s ease;
@@ -417,7 +432,7 @@ onMounted(async () => {
 
 .article-title {
   font-family: 'Noto Serif SC', serif;
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.4;
@@ -434,15 +449,16 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 24px;
 }
 .tag {
-  display: inline-block;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
   color: var(--text-secondary);
   background: var(--bg-tag);
   padding: 3px 10px;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: background 0.3s ease;
 }
 
@@ -545,29 +561,33 @@ onMounted(async () => {
 .comment-msg {
   margin-top: 12px;
   padding: 10px 14px;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 13px;
   line-height: 1.4;
 }
 
 .comment-msg-error {
+  /* TODO: theme with CSS variables once semantic colors are defined */
   background: #fef2f2;
   color: #dc2626;
   border: 1px solid #fecaca;
 }
 
 .dark .comment-msg-error {
+  /* TODO: theme with CSS variables once semantic colors are defined */
   background: rgba(220, 38, 38, 0.1);
   border-color: rgba(220, 38, 38, 0.3);
 }
 
 .comment-msg-success {
+  /* TODO: theme with CSS variables once semantic colors are defined */
   background: #f0fdf4;
   color: #16a34a;
   border: 1px solid #bbf7d0;
 }
 
 .dark .comment-msg-success {
+  /* TODO: theme with CSS variables once semantic colors are defined */
   background: rgba(22, 163, 74, 0.1);
   border-color: rgba(22, 163, 74, 0.3);
 }
@@ -589,11 +609,11 @@ onMounted(async () => {
 
 .comment-item:hover {
   border-color: var(--border-input);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .dark .comment-item:hover {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .comment-item-pinned {
@@ -716,23 +736,21 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-/* TOC Sidebar (Desktop) */
+/* TOC Sidebar (Desktop) - sticky */
 .toc-sidebar {
-  position: fixed;
-  top: 50%;
-  right: max(calc((100vw - 740px) / 2 - 280px), 20px);
-  transform: translateY(-50%);
+  position: sticky;
+  top: calc(var(--nav-height) + 24px);
   width: 210px;
-  max-height: 70vh;
+  flex-shrink: 0;
+  max-height: calc(100vh - var(--nav-height) - 48px);
   overflow-y: auto;
   background: var(--bg-card);
   border-radius: 10px;
   padding: 14px 0;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-card);
   border: 1px solid var(--border);
   transition: background 0.3s ease, border-color 0.3s ease;
   scroll-behavior: smooth;
-  z-index: 50;
 }
 .toc-sidebar::-webkit-scrollbar { width: 3px; }
 .toc-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -748,7 +766,7 @@ onMounted(async () => {
   color: var(--text-primary);
   padding: 0 16px 10px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 4px;
+  margin: 0 0 8px;
   font-family: 'Noto Serif SC', serif;
 }
 .toc-nav { display: flex; flex-direction: column; }
@@ -780,7 +798,7 @@ onMounted(async () => {
 .mobile-toc {
   margin: 20px 0 24px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   background: var(--bg-card);
 }
@@ -812,12 +830,27 @@ onMounted(async () => {
 }
 
 /* Hide desktop TOC on narrow screens, show mobile TOC */
-@media (max-width: 1100px) {
+@media (max-width: 1077px) {
   .toc-sidebar { display: none; }
 }
 /* Show desktop TOC on wide screens */
-@media (min-width: 1101px) {
+@media (min-width: 1078px) {
   .mobile-toc { display: none; }
+}
+
+/* Mobile responsive */
+@media (max-width: 1077px) {
+  .article-main {
+    max-width: 100%;
+  }
+}
+@media (max-width: 768px) {
+  .article-layout {
+    flex-direction: column;
+  }
+  .article-container {
+    padding: 24px 20px;
+  }
 }
 
 /* Article Content - rendered markdown */
@@ -846,7 +879,7 @@ onMounted(async () => {
 .article-content pre {
   background: var(--bg-pre);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 16px 20px;
   overflow-x: auto;
   margin-bottom: 20px;
@@ -889,7 +922,7 @@ onMounted(async () => {
   padding: 8px 16px;
   margin: 16px 0;
   background: var(--bg-tag);
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 10px 10px 0;
   color: var(--text-secondary);
 }
 .article-content blockquote p {
@@ -926,7 +959,7 @@ onMounted(async () => {
 }
 .article-content img {
   max-width: 100%;
-  border-radius: 8px;
+  border-radius: 10px;
   margin: 20px 0;
 }
 .article-content strong {

@@ -28,13 +28,13 @@ useDarkMode()
   width: 8px;
 }
 .dark ::-webkit-scrollbar-track {
-  background: #1c1917;
+  background: var(--bg-card);
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #44403c;
+  background: var(--border-input);
   border-radius: 4px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #57534e;
+  background: #57534e; /* TODO: scrollbar thumb hover color, no matching CSS var */
 }
 </style>

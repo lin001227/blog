@@ -70,20 +70,6 @@ const rules = {
   ],
 }
 
-function handleUserCommand(command) {
-    if (command === 'logout') {
-      auth.logout()
-      router.push('/admin/login')
-    } else if (command === 'dark') {
-      const html = document.documentElement
-      const isDark = html.classList.contains('dark')
-      html.classList.toggle('dark')
-      html.classList.add('theme-transitioning')
-      setTimeout(() => html.classList.remove('theme-transitioning'), 500)
-      localStorage.setItem('theme', isDark ? 'light' : 'dark')
-    }
-  }
-
 function handleCancel() {
   router.push('/admin/users')
 }
@@ -145,18 +131,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.admin-page {
-  min-height: 100vh;
-  background: var(--bg-page);
-  transition: background 0.3s ease;
-}
-
-.admin-nav-link:hover,
-.admin-nav-link.active,
-.admin-nav-link.router-link-exact-active {
-  color: var(--text-primary);
-}
-
 .editor-header {
   margin-bottom: 28px;
 }
@@ -168,7 +142,7 @@ onMounted(async () => {
 }
 .editor-form {
   background: var(--bg-card);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 32px;
   box-shadow: var(--shadow-card);
   transition: background 0.3s ease;

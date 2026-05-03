@@ -15,7 +15,8 @@
           @keyup.enter="doSearch"
         />
         <el-button type="primary" size="large" :loading="searching" @click="doSearch" class="hero-search-btn">
-          {{ searching ? '搜索中' : '🔍 搜索' }}
+          <el-icon style="margin-right:4px"><Search /></el-icon>
+          {{ searching ? '搜索中' : '搜索' }}
         </el-button>
       </div>
     </div>
@@ -28,7 +29,7 @@
         <span class="result-count">共 {{ searchResults.length }} 条</span>
       </div>
       <div v-if="searchResults.length === 0" class="empty-state">未找到相关文章</div>
-      <el-card v-for="article in searchResults" :key="article.id" class="article-card" shadow="hover" @click="$router.push(`/article/${article.id}`)">
+      <el-card v-for="article in searchResults" :key="article.id" class="article-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${article.id}`)" @keydown.enter="$router.push(`/article/${article.id}`)" @keydown.space.prevent="$router.push(`/article/${article.id}`)">
         <template #header>
           <div class="article-card-header">
             <h2 class="article-card-title">{{ article.title }}</h2>
@@ -52,7 +53,7 @@
   <div class="main-layout" v-else-if="articles.length > 0">
     <main class="content">
       <!-- Pinned Articles -->
-      <el-card v-for="pinnedArticle in pinnedArticles" :key="pinnedArticle.id" class="article-card pinned-card" shadow="hover" @click="$router.push(`/article/${pinnedArticle.id}`)">
+      <el-card v-for="pinnedArticle in pinnedArticles" :key="pinnedArticle.id" class="article-card pinned-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${pinnedArticle.id}`)" @keydown.enter="$router.push(`/article/${pinnedArticle.id}`)" @keydown.space.prevent="$router.push(`/article/${pinnedArticle.id}`)">
         <template #header>
           <div class="article-card-header">
             <div class="pinned-badge"><el-icon><StarFilled /></el-icon> 置顶</div>
@@ -60,8 +61,8 @@
             <div class="article-card-meta">
               <span>{{ formatDate(pinnedArticle.createdAt) }}</span>
               <span v-if="pinnedArticle.category"><el-tag size="small" effect="plain">{{ pinnedArticle.category }}</el-tag></span>
-              <span>👁️ {{ pinnedArticle.viewCount ?? 0 }} 阅读</span>
-              <span>💬 {{ pinnedArticle.commentCount ?? 0 }}</span>
+              <span><el-icon><View /></el-icon> {{ pinnedArticle.viewCount ?? 0 }} 阅读</span>
+              <span><el-icon><ChatDotSquare /></el-icon> {{ pinnedArticle.commentCount ?? 0 }}</span>
             </div>
           </div>
         </template>
@@ -73,15 +74,15 @@
 
       <!-- Article List -->
       <div class="section-title" v-if="regularArticles.length > 0">最新文章</div>
-      <el-card v-for="article in regularArticles" :key="article.id" class="article-card" shadow="hover" @click="$router.push(`/article/${article.id}`)">
+      <el-card v-for="article in regularArticles" :key="article.id" class="article-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${article.id}`)" @keydown.enter="$router.push(`/article/${article.id}`)" @keydown.space.prevent="$router.push(`/article/${article.id}`)">
         <template #header>
           <div class="article-card-header">
             <h2 class="article-card-title">{{ article.title }}</h2>
             <div class="article-card-meta">
               <span>{{ formatDate(article.createdAt) }}</span>
               <span v-if="article.category"><el-tag size="small" effect="plain">{{ article.category }}</el-tag></span>
-              <span>👁️ {{ article.viewCount ?? 0 }} 阅读</span>
-              <span>💬 {{ article.commentCount ?? 0 }}</span>
+              <span><el-icon><View /></el-icon> {{ article.viewCount ?? 0 }} 阅读</span>
+              <span><el-icon><ChatDotSquare /></el-icon> {{ article.commentCount ?? 0 }}</span>
             </div>
           </div>
         </template>
@@ -143,7 +144,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, StarFilled } from '@element-plus/icons-vue'
+import { Search, StarFilled, View, ChatDotSquare } from '@element-plus/icons-vue'
 import { getArticles, searchArticles } from '../api/articles'
 
 const router = useRouter()
@@ -258,7 +259,7 @@ async function subscribe() {
 }
 .hero-title {
   font-family: 'Noto Serif SC', serif;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 12px;
@@ -285,7 +286,7 @@ async function subscribe() {
 
 /* Main Layout */
 .main-layout {
-  max-width: 1280px;
+  max-width: var(--max-width);
   margin: 0 auto;
   padding: 0 24px 40px;
   display: flex;
@@ -307,7 +308,7 @@ async function subscribe() {
 /* Section Title */
 .section-title {
   font-family: 'Noto Serif SC', serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 20px;
@@ -329,6 +330,10 @@ async function subscribe() {
   background: var(--bg-card) !important;
   border: 1px solid var(--border) !important;
   box-shadow: var(--shadow-card) !important;
+}
+.article-card:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
 }
 .article-card:hover {
   transform: translateY(-3px);
@@ -465,34 +470,38 @@ async function subscribe() {
   margin-top: 12px;
   font-size: 13px;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 10px;
 }
 .subscribe-success {
+  /* TODO: theme with CSS variables once semantic colors are defined */
   color: #16a34a;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
 }
 .subscribe-error {
+  /* TODO: theme with CSS variables once semantic colors are defined */
   color: #dc2626;
   background: #fef2f2;
   border: 1px solid #fecaca;
 }
 .subscribe-info {
-  color: #2563eb;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  color: var(--text-accent);
+  background: var(--bg-pinned);
+  border: 1px solid #bfdbfe; /* TODO: theme border with CSS variable */
 }
 .dark .subscribe-success {
+  /* TODO: theme with CSS variables once semantic colors are defined */
   background: rgba(22,163,74,0.1);
   border-color: rgba(22,163,74,0.3);
 }
 .dark .subscribe-error {
+  /* TODO: theme with CSS variables once semantic colors are defined */
   background: rgba(220,38,38,0.1);
   border-color: rgba(220,38,38,0.3);
 }
 .dark .subscribe-info {
-  background: rgba(37,99,235,0.1);
-  border-color: rgba(37,99,235,0.3);
+  background: var(--bg-pinned);
+  border-color: rgba(37,99,235,0.3); /* TODO: theme border with CSS variable */
 }
 
 /* Responsive */

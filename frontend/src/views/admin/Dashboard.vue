@@ -167,7 +167,7 @@ onMounted(async () => {
 }
 .dashboard-heading {
   font-family: 'Noto Serif SC', serif;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 4px;
@@ -186,7 +186,7 @@ onMounted(async () => {
 }
 .stat-card {
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 24px;
   box-shadow: var(--shadow-card);
   transition: background 0.3s ease, transform 0.2s;
@@ -197,10 +197,10 @@ onMounted(async () => {
 .stat-card:hover {
   transform: translateY(-2px);
 }
-.stat-card.accent-blue { border-top-color: #409eff; }
-.stat-card.accent-green { border-top-color: #67c23a; }
-.stat-card.accent-orange { border-top-color: #e6a23c; }
-.stat-card.accent-purple { border-top-color: #9b59b6; }
+.stat-card.accent-blue { border-top-color: #409eff; /* TODO: semantic stat card accent color */ }
+.stat-card.accent-green { border-top-color: #67c23a; /* TODO: semantic stat card accent color */ }
+.stat-card.accent-orange { border-top-color: #e6a23c; /* TODO: semantic stat card accent color */ }
+.stat-card.accent-purple { border-top-color: #9b59b6; /* TODO: semantic stat card accent color */ }
 
 .stat-number {
   font-size: 32px;
@@ -219,7 +219,7 @@ onMounted(async () => {
   opacity: 0.8;
 }
 .stat-trend.pending {
-  color: #e6a23c;
+  color: #e6a23c; /* TODO: semantic warning color */
   font-weight: 500;
 }
 
@@ -232,13 +232,13 @@ onMounted(async () => {
 }
 .panel {
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 24px;
   box-shadow: var(--shadow-card);
 }
 .section-title {
   font-family: 'Noto Serif SC', serif;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 16px;
@@ -262,12 +262,12 @@ onMounted(async () => {
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  color: #fff;
+  color: #fff; /* TODO: white on colored badge */
   flex-shrink: 0;
 }
-.rank-1 { background: #f56a00; }
-.rank-2 { background: #409eff; }
-.rank-3 { background: #67c23a; }
+.rank-1 { background: #f56a00; /* TODO: semantic rank badge color (gold) */ }
+.rank-2 { background: #409eff; /* TODO: semantic rank badge color (blue) */ }
+.rank-3 { background: #67c23a; /* TODO: semantic rank badge color (green) */ }
 .rank-4,
 .rank-5 { background: var(--border); color: var(--text-secondary); }
 
@@ -350,7 +350,7 @@ onMounted(async () => {
 /* Quick Actions */
 .quick-actions {
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 24px;
   box-shadow: var(--shadow-card);
   transition: background 0.3s ease;

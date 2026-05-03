@@ -129,10 +129,9 @@ async function handleLogin() {
   transition: background 0.3s ease;
 }
 .login-card {
-  width: 100%;
   max-width: 400px;
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 40px;
   box-shadow: var(--shadow-card);
   transition: background 0.3s ease;
@@ -143,7 +142,7 @@ async function handleLogin() {
 }
 .login-brand {
   font-family: 'Noto Serif SC', serif;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
   text-decoration: none;
@@ -157,7 +156,7 @@ async function handleLogin() {
 .error-msg {
   text-align: center;
   font-size: 13px;
-  color: #ef4444;
+  color: #ef4444; /* TODO: use CSS variable for error color */
   margin-top: -8px;
   margin-bottom: 8px;
 }

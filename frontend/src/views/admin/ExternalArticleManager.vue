@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 style="font-size:22px;font-weight:600;margin:0 0 20px;color:var(--text-primary)">📖 精选阅读管理</h1>
+    <h1 style="font-size:20px;font-weight:600;margin:0 0 20px;color:var(--text-primary)">📖 精选阅读管理</h1>
 
     <!-- Add URL -->
     <el-card shadow="never" class="add-card">

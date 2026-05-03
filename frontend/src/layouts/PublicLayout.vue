@@ -89,7 +89,7 @@ useDarkMode()
 /* Main Content */
 .public-main {
   flex: 1;
-  max-width: 740px;
+  max-width: var(--max-width);
   margin: 0 auto;
   padding: 40px 24px 60px;
   width: 100%;

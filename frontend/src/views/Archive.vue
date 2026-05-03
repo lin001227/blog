@@ -2,7 +2,7 @@
   <!-- Header -->
   <section class="archive-header-section">
     <div class="archive-header-inner">
-      <h1 class="archive-header-title">📂 文章归档</h1>
+      <h1 class="archive-header-title"><el-icon style="vertical-align:middle"><Folder /></el-icon> 文章归档</h1>
       <p class="archive-header-subtitle">共 {{ totalCount }} 篇文章 · 按时间倒序排列</p>
     </div>
   </section>
@@ -40,7 +40,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <el-card shadow="never" class="sidebar-card">
-        <template #header><span class="sidebar-card-title">📊 统计</span></template>
+        <template #header><span class="sidebar-card-title"><el-icon><DataAnalysis /></el-icon> 统计</span></template>
         <div class="stat-list">
           <div class="stat-item">
             <span class="stat-label">文章总数</span>
@@ -58,7 +58,7 @@
       </el-card>
 
       <el-card shadow="never" class="sidebar-card">
-        <template #header><span class="sidebar-card-title">📅 归档导航</span></template>
+        <template #header><span class="sidebar-card-title"><el-icon><Calendar /></el-icon> 归档导航</span></template>
         <div class="jump-list">
           <a v-for="group in archive" :key="group.year + '-' + group.month"
              :href="'#' + group.year + '-' + group.month"
@@ -75,6 +75,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { Folder, DataAnalysis, Calendar } from '@element-plus/icons-vue'
 import { getArchive } from '../api/articles'
 
 const archive = ref([])
@@ -136,7 +137,7 @@ onMounted(async () => {
 
 /* Main Layout */
 .main-layout {
-  max-width: 1080px;
+  max-width: var(--max-width);
   margin: 0 auto;
   padding: 0 24px 60px;
   display: grid;
@@ -292,14 +293,13 @@ onMounted(async () => {
   overflow-y: auto;
 }
 .jump-item {
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: center;
-  font-size: 14px;
+  gap: 4px;
   color: var(--text-secondary);
   text-decoration: none;
   padding: 7px 10px;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }

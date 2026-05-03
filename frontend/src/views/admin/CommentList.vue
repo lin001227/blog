@@ -1,22 +1,24 @@
 <template>
-  <div class="admin-header">
-    <h1 class="admin-heading">
-      评论管理
-      <el-tag v-if="pendingCount > 0" type="warning" size="small" style="margin-left: 12px; vertical-align: middle;">
-        {{ pendingCount }} 条待审核
-      </el-tag>
-    </h1>
-  </div>
+  <div>
+    <div class="admin-header">
+      <h1 class="admin-heading">
+        评论管理
+        <el-tag v-if="pendingCount > 0" type="warning" size="small" style="margin-left:12px;vertical-align:middle">
+          {{ pendingCount }} 条待审核
+        </el-tag>
+      </h1>
+    </div>
 
-  <el-table :data="comments" v-loading="loading" stripe style="width: 100%">
-    <el-table-column prop="id" label="ID" width="60" />
-    <el-table-column prop="nickname" label="昵称" width="100" />
-    <el-table-column prop="content" label="内容" min-width="240">
-      <template #default="{ row }">
-        <div class="comment-content">{{ row.content }}</div>
+    <el-card shadow="never" class="table-card">
+      <el-table :data="comments" v-loading="loading" stripe style="width:100%">
+        <el-table-column prop="id" label="ID" width="60" />
+        <el-table-column prop="nickname" label="昵称" width="100" />
+        <el-table-column prop="content" label="内容" min-width="240" show-overflow-tooltip>
+          <template #default="{ row }">
+            <div class="comment-content">{{ row.content }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="所属文章" min-width="180">
+        <el-table-column label="所属文章" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">
             <a class="comment-article-link" :href="`/article/${row.articleId}`" target="_blank" @click.stop>
               <span class="comment-article-icon">📄</span>
@@ -40,12 +42,8 @@
           <template #default="{ row }">
             <div class="comment-actions">
               <div class="comment-status-actions" v-if="row.status === 'PENDING'">
-                <el-button text size="small" type="success" @click="handleApprove(row)">
-                  通过
-                </el-button>
-                <el-button text size="small" type="warning" @click="handleReject(row)">
-                  拒绝
-                </el-button>
+                <el-button text size="small" type="success" @click="handleApprove(row)">通过</el-button>
+                <el-button text size="small" type="warning" @click="handleReject(row)">拒绝</el-button>
               </div>
               <el-button
                 text
@@ -53,9 +51,7 @@
                 :type="row.pinned ? 'warning' : 'default'"
                 @click="handlePin(row)"
                 :title="row.pinned ? '取消置顶' : '置顶'"
-              >
-                {{ row.pinned ? '📌 已置顶' : '📍 置顶' }}
-              </el-button>
+              >{{ row.pinned ? '📌 已置顶' : '📍 置顶' }}</el-button>
               <el-popconfirm title="确定删除此评论？" @confirm="handleDelete(row)">
                 <template #reference>
                   <el-button text size="small" type="danger">删除</el-button>
@@ -65,6 +61,8 @@
           </template>
         </el-table-column>
       </el-table>
+    </el-card>
+  </div>
 </template>
 
 <script setup>
@@ -140,7 +138,7 @@ onMounted(async () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   font-size: 14px;
-  color: var(--text-body);
+  color: var(--text-secondary);
 }
 
 .comment-article-link {
@@ -148,14 +146,14 @@ onMounted(async () => {
   align-items: center;
   gap: 6px;
   text-decoration: none;
-  color: var(--el-text-color-primary);
+  color: var(--text-primary);
   font-size: 13px;
   transition: color 0.2s;
   max-width: 100%;
 }
 
 .comment-article-link:hover {
-  color: var(--el-color-primary);
+  color: var(--text-accent);
 }
 
 .comment-article-icon {
@@ -183,6 +181,30 @@ onMounted(async () => {
 
 .comment-time-cell {
   font-size: 13px;
-  color: var(--el-text-color-secondary);
+  color: var(--text-muted);
+}
+
+/* Table Card - unified style */
+:deep(.table-card) {
+  border-radius: 10px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg-card) !important;
+}
+:deep(.table-card .el-card__body) {
+  padding: 0;
+}
+:deep(.el-table) {
+  --el-table-border-color: var(--border);
+}
+
+/* Admin header - unified */
+:deep(.admin-header) {
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  :deep(.table-card) {
+    overflow-x: auto;
+  }
 }
 </style>
