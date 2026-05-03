@@ -10,6 +10,12 @@
           <router-link to="/admin/comments" class="admin-nav-link">评论</router-link>
           <router-link v-if="auth.isAdmin" to="/admin/users" class="admin-nav-link">用户</router-link>
           <a class="admin-nav-link" href="/" target="_blank">查看博客</a>
+          <div class="admin-user">
+            <el-avatar :size="28" shape="square" style="background: var(--text-accent); vertical-align: middle;">
+              <span style="font-size: 13px;">{{ auth.displayName.charAt(0) }}</span>
+            </el-avatar>
+            <span class="admin-user-name">{{ auth.displayName }}</span>
+          </div>
           <el-button text size="small" @click="handleLogout" style="color: var(--text-secondary);">
             退出登录
           </el-button>
@@ -248,6 +254,19 @@ onMounted(async () => {
 .admin-nav-link.active,
 .admin-nav-link.router-link-exact-active {
   color: var(--text-primary);
+}
+
+.admin-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+}
+.admin-user-name {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .dark-toggle {
