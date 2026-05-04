@@ -25,6 +25,7 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final CommentRepository commentRepository;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public List<ArticleResponse> getPublicArticles() {
@@ -70,7 +71,12 @@ public class ArticleService {
         article.setPinned(request.getPinned() != null && request.getPinned());
 
         Article saved = articleRepository.save(article);
-        return ArticleResponse.fromEntity(saved, 0);
+        ArticleResponse response = ArticleResponse.fromEntity(saved, 0);
+
+        // Send new article notification to all active subscribers (async)
+        emailService.sendNewArticleNotification(response);
+
+        return response;
     }
 
     @Transactional
