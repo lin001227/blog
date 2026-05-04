@@ -52,6 +52,13 @@ INSERT INTO language_ranking (rank_order, language_name, percentage, trend, colo
 (10, 'Grok 4', 7.2, 'up', '#1DA1F2', 'https://cdn.simpleicons.org/x/1DA1F2', 'xAI · 实时信息与幽默风格', '2026-04')
 ON DUPLICATE KEY UPDATE language_name=VALUES(language_name);
 
+CREATE TABLE IF NOT EXISTS subscriber (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS external_article (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     url VARCHAR(1024) NOT NULL,
