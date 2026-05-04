@@ -22,7 +22,14 @@ app:
     expiration-ms: 86400000  # 24 hours
 
   deepseek:
-    api-key: sk-7f067f28aeeb4b4b8cccf2dacf915a45
+    api-key: sk-7f0...5a45
     api-url: https://api.deepseek.com/v1/chat/completions
     model: deepseek-v4-flash
     max-tokens: 300
+
+  mail:
+    from: ${APP_MAIL_FROM:noreply@fengyu.blog}
+
+  blog:
+    url: ${APP_BLOG_URL:http://localhost}
+    name: 风屿 · 随笔

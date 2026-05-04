@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
 
     private final SubscriberRepository repository;
+    private final EmailService emailService;
 
     @Transactional
     public SubscribeResponse subscribe(SubscribeRequest request) {
@@ -31,6 +32,10 @@ public class SubscriptionService {
 
         Subscriber saved = repository.save(subscriber);
         log.info("New subscriber: {}", email);
+
+        // Send welcome email asynchronously
+        emailService.sendWelcomeEmail(email);
+
         return SubscribeResponse.fromEntity(saved);
     }
 
