@@ -14,6 +14,7 @@
             <el-menu-item index="/admin">概览</el-menu-item>
             <el-menu-item index="/admin/articles">文章</el-menu-item>
             <el-menu-item index="/admin/external-articles">阅读</el-menu-item>
+            <el-menu-item index="/admin/language-rankings">排行</el-menu-item>
             <el-menu-item v-if="auth.isAdmin" index="/admin/users">用户</el-menu-item>
             <el-menu-item index="/admin/comments">评论</el-menu-item>
           </el-menu>
@@ -27,6 +28,7 @@
                   <el-dropdown-item command="/admin">概览</el-dropdown-item>
                   <el-dropdown-item command="/admin/articles">文章</el-dropdown-item>
                   <el-dropdown-item command="/admin/external-articles">阅读</el-dropdown-item>
+                  <el-dropdown-item command="/admin/language-rankings">排行</el-dropdown-item>
                   <el-dropdown-item v-if="auth.isAdmin" command="/admin/users">用户</el-dropdown-item>
                   <el-dropdown-item command="/admin/comments">评论</el-dropdown-item>
                 </el-dropdown-menu>
@@ -90,6 +92,7 @@ const activeMenu = computed(() => {
   const path = route.path
   if (path.startsWith('/admin/articles')) return '/admin/articles'
   if (path.startsWith('/admin/external-articles')) return '/admin/external-articles'
+  if (path.startsWith('/admin/language-rankings')) return '/admin/language-rankings'
   if (path.startsWith('/admin/users')) return '/admin/users'
   if (path.startsWith('/admin/comments')) return '/admin/comments'
   return '/admin'

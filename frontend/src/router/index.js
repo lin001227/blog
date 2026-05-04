@@ -25,6 +25,11 @@ const routes = [
         name: 'ExternalReadings',
         component: () => import('../views/ExternalReadings.vue'),
       },
+      {
+        path: 'rankings',
+        name: 'LanguageRankings',
+        component: () => import('../views/LanguageRanking.vue'),
+      },
     ],
   },
   {
@@ -84,6 +89,11 @@ const routes = [
         path: 'external-articles',
         name: 'ExternalArticleManager',
         component: () => import('../views/admin/ExternalArticleManager.vue'),
+      },
+      {
+        path: 'language-rankings',
+        name: 'LanguageRankingManager',
+        component: () => import('../views/admin/LanguageRankingManager.vue'),
       },
     ],
   },
