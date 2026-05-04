@@ -1,6 +1,6 @@
 <template>
   <div v-if="article">
-    <div class="article-layout">
+    <div class="article-layout" :class="{ 'no-toc': tocItems.length === 0 }">
       <!-- LEFT: article main content -->
       <div class="article-main">
         <div class="article-container">
@@ -138,7 +138,43 @@
     </div>
   </div>
 
-  <div v-else-if="loading" class="loading">加载中...</div>
+  <div v-else-if="loading">
+    <div class="article-layout">
+      <div class="article-main">
+        <div class="article-container">
+          <div class="skeleton-back skeleton-pulse" style="width:80px;height:14px;margin-bottom:24px;border-radius:3px"></div>
+          <div class="skeleton-title skeleton-pulse" style="width:80%;height:28px;margin-bottom:12px;border-radius:4px"></div>
+          <div class="skeleton-meta-row" style="margin-bottom:20px">
+            <div class="skeleton-meta skeleton-pulse" style="width:90px"></div>
+            <div class="skeleton-meta skeleton-pulse" style="width:60px"></div>
+            <div class="skeleton-meta skeleton-pulse" style="width:100px"></div>
+          </div>
+          <div class="skeleton-content">
+            <div class="skeleton-line skeleton-pulse"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:92%"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:85%"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:97%"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:88%"></div>
+            <div style="height:16px"></div>
+            <div class="skeleton-line skeleton-pulse"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:78%"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:90%"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:65%"></div>
+          </div>
+        </div>
+      </div>
+      <aside class="toc-sidebar">
+        <div class="toc-title">📑 目录</div>
+        <nav class="toc-nav">
+          <div class="skeleton-toc-item skeleton-pulse" style="width:85%"></div>
+          <div class="skeleton-toc-item skeleton-pulse" style="width:70%"></div>
+          <div class="skeleton-toc-item skeleton-pulse" style="width:60%;margin-left:10px"></div>
+          <div class="skeleton-toc-item skeleton-pulse" style="width:75%;margin-left:10px"></div>
+          <div class="skeleton-toc-item skeleton-pulse" style="width:65%"></div>
+        </nav>
+      </aside>
+    </div>
+  </div>
   <div v-else class="loading">文章未找到</div>
 </template>
 
@@ -402,6 +438,14 @@ onMounted(async () => {
   display: flex;
   gap: 40px;
   align-items: flex-start;
+}
+.article-layout.no-toc {
+  justify-content: center;
+}
+.article-layout.no-toc .article-main {
+  margin: 0 auto;
+  flex: auto;
+  max-width: 900px;
 }
 .article-main {
   flex: 1;
@@ -972,5 +1016,87 @@ onMounted(async () => {
 }
 .article-content a:hover {
   text-decoration: underline;
+}
+
+/* Skeleton Loading */
+.skeleton-back {
+  background: var(--bg-tag);
+}
+.skeleton-title {
+  background: var(--bg-tag);
+}
+.skeleton-meta-row {
+  display: flex;
+  gap: 10px;
+}
+.skeleton-meta {
+  height: 12px;
+  border-radius: 3px;
+  background: var(--bg-tag);
+}
+.skeleton-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.skeleton-line {
+  height: 14px;
+  border-radius: 3px;
+  background: var(--bg-tag);
+}
+.skeleton-toc-item {
+  height: 14px;
+  border-radius: 3px;
+  margin: 8px 16px;
+  background: var(--bg-tag);
+}
+.skeleton-pulse {
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 1078px) {
+  .article-layout {
+    flex-direction: column;
+  }
+  .toc-sidebar {
+    display: none;
+  }
+  .article-main {
+    max-width: 100%;
+  }
+  .article-layout.no-toc .article-main {
+    flex: 1;
+    max-width: 100%;
+  }
+}
+@media (max-width: 768px) {
+  .article-container {
+    padding: 24px 18px;
+  }
+  .article-title {
+    font-size: 24px;
+  }
+  .article-meta {
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+  .comment-form-row {
+    flex-direction: column;
+  }
+  .comment-form-card {
+    padding: 16px;
+  }
+  .comment-main {
+    padding: 12px;
+  }
+  .comment-section {
+    margin-top: 32px;
+    padding-top: 24px;
+  }
 }
 </style>

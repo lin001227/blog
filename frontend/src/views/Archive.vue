@@ -10,7 +10,23 @@
   <!-- Archive Timeline -->
   <div class="main-layout">
     <main class="content">
-      <div v-if="loading" class="loading-text">加载中...</div>
+      <div v-if="loading">
+        <div v-for="n in 3" :key="n" class="archive-group">
+          <div class="archive-group-header">
+            <span class="skeleton-title skeleton-pulse" style="width:100px"></span>
+          </div>
+          <div class="timeline">
+            <div v-for="m in 4" :key="m" class="timeline-item">
+              <div class="skeleton-dot skeleton-pulse"></div>
+              <div class="timeline-date"><span class="skeleton-meta skeleton-pulse" style="width:40px;display:inline-block"></span></div>
+              <div class="timeline-content" style="padding:12px 16px">
+                <div class="skeleton-line skeleton-pulse" style="width:65%"></div>
+                <div class="skeleton-line skeleton-pulse" style="width:40%;height:11px;margin-top:6px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div v-for="group in archive" :key="group.year + '-' + group.month" :id="group.year + '-' + group.month" class="archive-group">
         <div class="archive-group-header">
@@ -316,9 +332,67 @@ onMounted(async () => {
   .main-layout {
     grid-template-columns: 1fr;
     gap: 24px;
+    padding: 0 16px 40px;
+  }
+  .archive-header-section {
+    padding: 40px 16px 32px;
   }
   .archive-header-title {
     font-size: 26px;
   }
+  .archive-group-header {
+    margin-bottom: 12px;
+  }
+  .archive-group-month {
+    font-size: 18px;
+  }
+  .timeline {
+    padding-left: 22px;
+  }
+  .timeline-dot {
+    left: -18px;
+    width: 8px;
+    height: 8px;
+  }
+  .timeline-item {
+    gap: 10px;
+  }
+  .timeline-content {
+    padding: 10px 14px;
+  }
+  .timeline-title {
+    font-size: 14px;
+  }
+}
+
+/* Skeleton Loading */
+.skeleton-title {
+  height: 20px;
+  border-radius: 4px;
+}
+.skeleton-meta {
+  height: 12px;
+  border-radius: 3px;
+}
+.skeleton-dot {
+  position: absolute;
+  left: -24px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 1;
+}
+.skeleton-line {
+  height: 13px;
+  border-radius: 3px;
+}
+.skeleton-pulse {
+  background: var(--bg-tag);
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 </style>

@@ -22,94 +22,133 @@
     </div>
   </section>
 
-  <div class="main-layout" v-if="searchResults !== null">
+  <div class="main-layout">
     <main class="content">
-      <div class="section-title">
-        搜索结果：{{ searchQuery ? `"${searchQuery}"` : '' }}
-        <span class="result-count">共 {{ searchResults.length }} 条</span>
-      </div>
-      <div v-if="searchResults.length === 0" class="empty-state">未找到相关文章</div>
-      <el-card v-for="article in searchResults" :key="article.id" class="article-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${article.id}`)" @keydown.enter="$router.push(`/article/${article.id}`)" @keydown.space.prevent="$router.push(`/article/${article.id}`)">
-        <template #header>
-          <div class="article-card-header">
-            <h2 class="article-card-title">{{ article.title }}</h2>
-            <div class="article-card-meta">
-              <span class="meta-stat"><el-icon><View /></el-icon> {{ article.viewCount ?? 0 }}</span>
-              <span class="meta-stat"><el-icon><ChatDotSquare /></el-icon> {{ article.commentCount ?? 0 }}</span>
-              <span class="meta-sep">·</span>
-              <span class="meta-date">{{ formatDate(article.createdAt) }}</span>
-              <el-tag v-if="article.category" size="small" effect="plain" class="meta-tag">{{ article.category }}</el-tag>
-            </div>
-          </div>
-        </template>
-        <p class="article-excerpt">{{ excerpt(article.content) }}</p>
-      </el-card>
-      <div style="text-align:center;padding:20px 0;">
-        <el-button @click="clearSearch">← 返回全部文章</el-button>
-      </div>
-    </main>
-  </div>
-
-  <div class="main-layout" v-else-if="articles.length > 0">
-    <main class="content">
-      <!-- Pinned Articles -->
-      <el-card v-for="pinnedArticle in pinnedArticles" :key="pinnedArticle.id" class="article-card pinned-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${pinnedArticle.id}`)" @keydown.enter="$router.push(`/article/${pinnedArticle.id}`)" @keydown.space.prevent="$router.push(`/article/${pinnedArticle.id}`)">
-        <template #header>
-          <div class="article-card-header">
-            <div class="pinned-badge"><el-icon><StarFilled /></el-icon> 置顶</div>
-            <h2 class="article-card-title">{{ pinnedArticle.title }}</h2>
-            <div class="article-card-meta">
-              <span><el-icon><View /></el-icon> {{ pinnedArticle.viewCount ?? 0 }}</span>
-              <span><el-icon><ChatDotSquare /></el-icon> {{ pinnedArticle.commentCount ?? 0 }}</span>
-              <span class="meta-dot">·</span>
-              <span>{{ formatDate(pinnedArticle.createdAt) }}</span>
-              <el-tag v-if="pinnedArticle.category" size="small" effect="plain">{{ pinnedArticle.category }}</el-tag>
-            </div>
-          </div>
-        </template>
-        <p class="article-excerpt">{{ excerpt(pinnedArticle.content) }}</p>
-      </el-card>
-
-      <!-- Article List -->
-      <div class="section-title" v-if="regularArticles.length > 0">最新文章</div>
-      <el-card v-for="article in regularArticles" :key="article.id" class="article-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${article.id}`)" @keydown.enter="$router.push(`/article/${article.id}`)" @keydown.space.prevent="$router.push(`/article/${article.id}`)">
-        <template #header>
-          <div class="article-card-header">
-            <h2 class="article-card-title">{{ article.title }}</h2>
-            <div class="article-card-meta">
-              <span class="meta-stat"><el-icon><View /></el-icon> {{ article.viewCount ?? 0 }}</span>
-              <span class="meta-stat"><el-icon><ChatDotSquare /></el-icon> {{ article.commentCount ?? 0 }}</span>
-              <span class="meta-sep">·</span>
-              <span class="meta-date">{{ formatDate(article.createdAt) }}</span>
-              <el-tag v-if="article.category" size="small" effect="plain" class="meta-tag">{{ article.category }}</el-tag>
-            </div>
-          </div>
-        </template>
-        <p class="article-excerpt">{{ excerpt(article.content) }}</p>
-      </el-card>
-
-      <div v-if="loading" class="empty-state">加载中...</div>
-    </main>
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <el-card shadow="never" class="sidebar-card">
-        <template #header><span class="sidebar-title">关于</span></template>
-        <p class="sidebar-text">个人博客，记录技术、生活与思考。</p>
-      </el-card>
-
-      <el-card shadow="never" class="sidebar-card">
-        <template #header><span class="sidebar-title">分类</span></template>
-        <div class="tag-list">
-          <el-tag v-for="cat in categories" :key="cat" size="small" effect="plain" style="margin: 2px;">{{ cat }}</el-tag>
+      <!-- Search Results -->
+      <template v-if="searchResults !== null">
+        <div class="section-title">
+          搜索结果：{{ searchQuery ? `"${searchQuery}"` : '' }}
+          <span class="result-count">共 {{ searchResults.length }} 条</span>
         </div>
-        <div v-if="categories.length === 0" class="sidebar-text">暂无分类</div>
-      </el-card>
+        <div v-if="searchResults.length === 0" class="empty-state">未找到相关文章</div>
+        <el-card v-for="article in searchResults" :key="article.id" class="article-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${article.id}`)" @keydown.enter="$router.push(`/article/${article.id}`)" @keydown.space.prevent="$router.push(`/article/${article.id}`)">
+          <template #header>
+            <div class="article-card-header">
+              <h2 class="article-card-title">{{ article.title }}</h2>
+              <div class="article-card-meta">
+                <span class="meta-stat"><el-icon><View /></el-icon> {{ article.viewCount ?? 0 }}</span>
+                <span class="meta-stat"><el-icon><ChatDotSquare /></el-icon> {{ article.commentCount ?? 0 }}</span>
+                <span class="meta-sep">·</span>
+                <span class="meta-date">{{ formatDate(article.createdAt) }}</span>
+                <el-tag v-if="article.category" size="small" effect="plain" class="meta-tag">{{ article.category }}</el-tag>
+              </div>
+            </div>
+          </template>
+          <p class="article-excerpt">{{ excerpt(article.content) }}</p>
+        </el-card>
+        <div style="text-align:center;padding:20px 0;">
+          <el-button @click="clearSearch">← 返回全部文章</el-button>
+        </div>
+      </template>
 
-      <el-card shadow="never" class="sidebar-card">
-        <template #header><span class="sidebar-title">时间线</span></template>
-        <router-link to="/archive" class="archive-link">查看完整归档 →</router-link>
-      </el-card>
+      <!-- Articles / Skeleton -->
+      <template v-else>
+        <el-skeleton :loading="loading && articles.length === 0" animated :count="loading ? 5 : 1" :throttle="0">
+          <template #template>
+            <div class="article-card el-skeleton-card">
+              <div class="sk-card-header">
+                <el-skeleton-item variant="h3" class="sk-title" />
+                <div class="sk-meta-row">
+                  <el-skeleton-item variant="caption" class="sk-meta" />
+                  <el-skeleton-item variant="caption" class="sk-meta" />
+                  <span class="meta-sep">·</span>
+                  <el-skeleton-item variant="caption" class="sk-meta" style="width:55px" />
+                  <el-skeleton-item variant="caption" class="sk-meta" style="width:45px" />
+                </div>
+              </div>
+              <div class="sk-card-body">
+                <el-skeleton-item variant="p" />
+                <el-skeleton-item variant="p" style="width:92%" />
+                <el-skeleton-item variant="p" style="width:86%" />
+                <el-skeleton-item variant="p" style="width:95%" />
+                <el-skeleton-item variant="p" style="width:60%" />
+              </div>
+            </div>
+          </template>
+          <template #default>
+            <template v-if="articles.length > 0">
+              <el-card v-for="pinnedArticle in pinnedArticles" :key="pinnedArticle.id" class="article-card pinned-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${pinnedArticle.id}`)" @keydown.enter="$router.push(`/article/${pinnedArticle.id}`)" @keydown.space.prevent="$router.push(`/article/${pinnedArticle.id}`)">
+                <template #header>
+                  <div class="article-card-header">
+                    <div class="pinned-badge"><el-icon><StarFilled /></el-icon> 置顶</div>
+                    <h2 class="article-card-title">{{ pinnedArticle.title }}</h2>
+                    <div class="article-card-meta">
+                      <span><el-icon><View /></el-icon> {{ pinnedArticle.viewCount ?? 0 }}</span>
+                      <span><el-icon><ChatDotSquare /></el-icon> {{ pinnedArticle.commentCount ?? 0 }}</span>
+                      <span class="meta-dot">·</span>
+                      <span>{{ formatDate(pinnedArticle.createdAt) }}</span>
+                      <el-tag v-if="pinnedArticle.category" size="small" effect="plain">{{ pinnedArticle.category }}</el-tag>
+                    </div>
+                  </div>
+                </template>
+                <p class="article-excerpt">{{ excerpt(pinnedArticle.content) }}</p>
+              </el-card>
+
+              <div class="section-title" v-if="regularArticles.length > 0">最新文章</div>
+              <el-card v-for="article in regularArticles" :key="article.id" class="article-card" shadow="hover" tabindex="0" role="link" @click="$router.push(`/article/${article.id}`)" @keydown.enter="$router.push(`/article/${article.id}`)" @keydown.space.prevent="$router.push(`/article/${article.id}`)">
+                <template #header>
+                  <div class="article-card-header">
+                    <h2 class="article-card-title">{{ article.title }}</h2>
+                    <div class="article-card-meta">
+                      <span class="meta-stat"><el-icon><View /></el-icon> {{ article.viewCount ?? 0 }}</span>
+                      <span class="meta-stat"><el-icon><ChatDotSquare /></el-icon> {{ article.commentCount ?? 0 }}</span>
+                      <span class="meta-sep">·</span>
+                      <span class="meta-date">{{ formatDate(article.createdAt) }}</span>
+                      <el-tag v-if="article.category" size="small" effect="plain" class="meta-tag">{{ article.category }}</el-tag>
+                    </div>
+                  </div>
+                </template>
+                <p class="article-excerpt">{{ excerpt(article.content) }}</p>
+              </el-card>
+            </template>
+            <div v-if="!loading && articles.length === 0" class="empty-state">暂无文章</div>
+          </template>
+        </el-skeleton>
+      </template>
+    </main>
+
+    <!-- Sidebar - hidden during search -->
+    <aside class="sidebar" v-if="searchResults === null">
+      <el-skeleton :loading="loading && articles.length === 0" animated :count="loading ? 3 : 1" :throttle="0">
+        <template #template>
+          <div class="sidebar-card el-skeleton-card">
+            <div class="sk-sidebar-header">
+              <el-skeleton-item variant="h3" class="sk-sidebar-title" />
+            </div>
+            <div class="sk-sidebar-body">
+              <el-skeleton-item variant="p" />
+              <el-skeleton-item variant="p" style="width:60%" />
+            </div>
+          </div>
+        </template>
+        <template #default>
+          <el-card shadow="never" class="sidebar-card">
+            <template #header><span class="sidebar-title">关于</span></template>
+            <p class="sidebar-text">个人博客，记录技术、生活与思考。</p>
+          </el-card>
+          <el-card shadow="never" class="sidebar-card">
+            <template #header><span class="sidebar-title">分类</span></template>
+            <div class="tag-list">
+              <el-tag v-for="cat in categories" :key="cat" size="small" effect="plain" style="margin: 2px;">{{ cat }}</el-tag>
+            </div>
+            <div v-if="categories.length === 0" class="sidebar-text">暂无分类</div>
+          </el-card>
+          <el-card shadow="never" class="sidebar-card">
+            <template #header><span class="sidebar-title">时间线</span></template>
+            <router-link to="/archive" class="archive-link">查看完整归档 →</router-link>
+          </el-card>
+        </template>
+      </el-skeleton>
     </aside>
   </div>
 
@@ -292,6 +331,7 @@ async function subscribe() {
 .content {
   flex: 1;
   min-width: 0;
+  max-width: 100%;
 }
 .sidebar {
   width: 260px;
@@ -326,6 +366,7 @@ async function subscribe() {
   background: var(--bg-card) !important;
   border: 1px solid var(--border) !important;
   box-shadow: var(--shadow-card) !important;
+  width: 100%;
 }
 .article-card:focus-visible {
   outline: 2px solid var(--text-accent);
@@ -406,6 +447,59 @@ async function subscribe() {
   color: var(--text-secondary);
   line-height: 1.7;
   margin: 0;
+}
+
+/* el-skeleton card — matches real article-card appearance */
+.el-skeleton-card {
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.el-skeleton-card:hover {
+  transform: none !important;
+  border-color: var(--border) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+.sk-card-header {
+  padding: 20px 24px 12px;
+}
+.sk-title {
+  display: block;
+  margin-bottom: 6px;
+  width: 70%;
+  height: 20px;
+}
+.sk-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sk-meta {
+  display: inline-block;
+  width: 40px;
+  height: 12px;
+}
+.sk-card-body {
+  padding: 6px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Sidebar skeleton */
+.sk-sidebar-header {
+  padding: 16px 20px 0;
+}
+.sk-sidebar-title {
+  display: block;
+  width: 40%;
+  height: 16px;
+}
+.sk-sidebar-body {
+  padding: 14px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* Sidebar */
@@ -526,6 +620,7 @@ async function subscribe() {
 @media (max-width: 768px) {
   .main-layout {
     flex-direction: column;
+    padding: 0 16px 32px;
   }
   .sidebar {
     width: 100%;
@@ -533,11 +628,40 @@ async function subscribe() {
   .hero-title {
     font-size: 28px;
   }
+  .hero {
+    padding: 40px 16px;
+  }
   .search-box {
     flex-direction: column;
   }
   .newsletter-form {
     flex-direction: column;
+  }
+  .newsletter {
+    padding: 32px 16px;
+  }
+  .article-card :deep(.el-card__header) {
+    padding: 16px 18px 10px;
+  }
+  .article-card :deep(.el-card__body) {
+    padding: 4px 18px 16px;
+  }
+  .section-title {
+    font-size: 18px;
+  }
+  .sk-card-header {
+    padding: 16px 18px 10px;
+  }
+  .sk-card-body {
+    padding: 4px 18px 16px;
+    gap: 8px;
+  }
+  .sk-sidebar-header {
+    padding: 12px 18px 0;
+  }
+  .sk-sidebar-body {
+    padding: 10px 18px 14px;
+    gap: 8px;
   }
 }
 </style>

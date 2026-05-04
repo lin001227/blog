@@ -23,18 +23,19 @@ useDarkMode()
   opacity: 0;
 }
 
-/* Scrollbar dark mode */
-.dark ::-webkit-scrollbar {
+/* Scrollbar — unified width, theme-adaptive colors */
+::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
-.dark ::-webkit-scrollbar-track {
-  background: var(--bg-card);
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
 }
-.dark ::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: var(--border-input);
   border-radius: 4px;
 }
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #57534e; /* TODO: scrollbar thumb hover color, no matching CSS var */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 </style>

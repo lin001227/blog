@@ -10,7 +10,27 @@
   <!-- Content -->
   <div class="main-layout">
     <main class="content">
-      <div v-if="loading" class="empty-state">加载中...</div>
+      <div v-if="loading">
+        <div v-for="n in 5" :key="n" class="skeleton-card">
+          <div class="skeleton-header">
+            <div class="skeleton-title skeleton-pulse"></div>
+            <div class="skeleton-actions">
+              <span class="skeleton-badge skeleton-pulse"></span>
+              <span class="skeleton-btn skeleton-pulse"></span>
+            </div>
+            <div class="skeleton-meta-row">
+              <span class="skeleton-meta skeleton-pulse" style="width:60px"></span>
+              <span class="skeleton-meta skeleton-pulse" style="width:50px"></span>
+              <span class="skeleton-meta skeleton-pulse" style="width:55px"></span>
+            </div>
+          </div>
+          <div class="skeleton-excerpt">
+            <div class="skeleton-line skeleton-pulse"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:90%"></div>
+            <div class="skeleton-line skeleton-pulse" style="width:60%"></div>
+          </div>
+        </div>
+      </div>
 
       <div v-else-if="articles.length === 0" class="empty-state">
         暂无收录文章
@@ -24,21 +44,14 @@
       >
         <div class="card-inner">
           <div class="card-body">
-            <!-- Header with title + actions inline -->
+            <!-- Header with title + actions below -->
             <div class="card-header">
-              <div class="card-title-row">
-                <h2 class="card-title">{{ article.title }}</h2>
-                <div class="card-actions">
-                  <el-tag v-if="article.summaryType === 'ai'" size="small" type="info" effect="plain" class="ai-badge">AI 摘要</el-tag>
-                  <el-button
-                    text
-                    type="primary"
-                    @click="openUrl(article.url)"
-                    class="read-original"
-                  >
-                    阅读原文 ↗
-                  </el-button>
-                </div>
+              <h2 class="card-title">{{ article.title }}</h2>
+              <div v-if="article.summaryType === 'ai'" class="card-actions">
+                <el-tag size="small" class="ai-badge">AI 摘要</el-tag>
+                <el-button text type="primary" @click="openUrl(article.url)" class="read-original">
+                  阅读原文 ↗
+                </el-button>
               </div>
               <div class="card-meta">
                 <span class="card-source">🌐 {{ article.source }}</span>
@@ -211,30 +224,18 @@ onMounted(async () => {
 .card-header {
   margin-bottom: 12px;
 }
-.card-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
 .card-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  padding-top: 2px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 .card-title {
   font-size: 17px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
-  margin: 0;
-  flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  margin: 0 0 6px;
 }
 .card-meta {
   font-size: 12px;
@@ -260,9 +261,19 @@ onMounted(async () => {
 }
 .ai-badge {
   font-size: 11px;
+  height: 22px;
+  line-height: 22px;
+  padding: 0 8px !important;
+  border-radius: 4px;
+  border: none !important;
+  background: var(--bg-tag) !important;
+  color: var(--text-accent) !important;
+  font-weight: 500;
 }
 .read-original {
   font-size: 13px;
+  white-space: nowrap;
+  padding: 0 2px;
 }
 
 /* Sidebar */
@@ -341,6 +352,7 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .main-layout {
     flex-direction: column;
+    padding: 0 16px 40px;
   }
   .sidebar {
     width: 100%;
@@ -348,5 +360,72 @@ onMounted(async () => {
   .card-body {
     padding: 16px;
   }
+  .readings-header {
+    padding: 40px 16px 32px;
+  }
+  .readings-title {
+    font-size: 26px;
+  }
+}
+
+/* Skeleton Loading */
+.skeleton-card {
+  margin-bottom: 20px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  padding: 20px 22px;
+  width: 100%;
+}
+.skeleton-header {
+  margin-bottom: 14px;
+}
+.skeleton-title {
+  height: 20px;
+  width: 70%;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.skeleton-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.skeleton-badge {
+  height: 22px;
+  width: 62px;
+  border-radius: 4px;
+}
+.skeleton-btn {
+  height: 22px;
+  width: 80px;
+  border-radius: 4px;
+}
+.skeleton-meta-row {
+  display: flex;
+  gap: 10px;
+}
+.skeleton-meta {
+  height: 12px;
+  border-radius: 3px;
+}
+.skeleton-excerpt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton-line {
+  height: 13px;
+  width: 100%;
+  border-radius: 3px;
+}
+.skeleton-pulse {
+  background: var(--bg-tag);
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 </style>
