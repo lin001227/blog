@@ -1,31 +1,70 @@
-# 📝 个人博客
+# 📝 风屿 · 随笔 — 个人博客
 
 基于 **Spring Boot 3 + Vue 3 + MariaDB** 的全栈博客系统，Docker 一键部署。
 
+包含文章管理、评论系统、邮件订阅、大模型排行榜、精选阅读、全文搜索、RSS 订阅等完整功能。
+
 ## ✨ 功能
 
-- 📄 文章发布、编辑、删除（Markdown 支持）
-- 📝 Markdown 渲染（代码高亮、标题锚点、引用块）
+### 📄 文章系统
+- 📝 文章发布、编辑、删除（Markdown 支持、代码高亮）
 - 📌 置顶文章 + 批量置顶/取消置顶
 - 🏷️ 文章分类与标签
-- 💬 文章评论（管理端评论管理）
-- 🔍 全文搜索（标题 + 内容）
-- 📋 文章归档（按年月分组）
+- 🔍 全文搜索（标题 + 内容，前端实时搜索 + 管理端后端分页）
+- 📋 文章归档（按年月分组展示）
+- 👁️ 阅读数统计
+- 💬 评论数显示
+
+### 💬 评论系统
+- 访客提交评论（昵称 + 邮箱 + 内容）
+- 后台审核管理（通过 / 拒绝 / 删除）
+- 评论置顶功能
+
+### 📡 订阅 & 推送
+- 📧 首页邮件订阅表单（真实 API 对接）
+- 🎉 订阅成功自动发送欢迎邮件（HTML 风格与博客一致）
+- 📤 **新文章发布 → 自动邮件推送所有订阅者**
+- 📋 管理后台订阅管理（查看 / 删除订阅邮箱）
 - 📡 RSS 订阅支持
+
+### 🤖 大模型排行榜
+- 首页展示热门 AI 模型排行榜（TOP 10）
+- 百分比 + 趋势箭头 + 品牌图标
+- 管理后台可编辑 / 拖拽排序
+
+### 📖 精选阅读
+- 外链文章管理（URL 自动抓取 + AI 摘要）
+- 精选阅读独立页面
+- 支持重新抓取 / 刷新
+
+### 🎨 前端设计
+- 🌙 深色模式（暖灰色系，一键切换，过渡动画）
+- 📱 响应式布局（桌面 / 平板 / 手机）
+- 🦴 骨架屏加载状态（所有页面）
+- ✨ 页面过渡动画
+- 📑 文章目录 TOC（滚动跟随高亮）
 - 🔗 Open Graph 社交分享预览
-- 📖 文章目录 TOC 导航
-- 👤 管理后台（数据看板、用户管理、文章管理、评论管理）
-- 🔐 JWT 登录认证
-- 🌙 深色模式
-- 📱 响应式设计
+- 🏠 首页重构（ArticleCard 组件化，语义颜色变量）
+
+### 🔐 管理后台
+| 页面 | 功能 |
+|------|------|
+| 📊 概览 | 数据看板（文章数 / 评论数 / 订阅数 / 阅读量统计） |
+| 📝 文章 | 文章列表 + 批量置顶/删除 + 后端分页搜索 |
+| 💬 评论 | 评论审核管理（通过 / 拒绝 / 置顶 / 删除） |
+| 📖 阅读 | 精选阅读管理（添加 / 编辑 / 重新抓取） |
+| 🤖 排行 | 大模型排行榜管理（编辑 / 拖拽排序） |
+| 📧 订阅 | 查看所有订阅邮箱，支持删除 |
+| 👥 用户 | 用户管理（仅管理员可见） |
 
 ## 🛠️ 技术栈
 
 | 层级 | 技术 |
 |------|------|
-| **前端** | Vue 3 + Element Plus + Pinia + Vue Router |
-| **后端** | Java 17 + Spring Boot 3 + Spring Security + JWT |
+| **前端** | Vue 3 + Element Plus + Pinia + marked + Vue Router |
+| **后端** | Java 17 + Spring Boot 3.2.5 + Spring Security + JWT + JPA |
 | **数据库** | MariaDB 10.11 |
+| **邮件** | QQ邮箱 SMTP（587/TLS） |
 | **部署** | Docker + Docker Compose + Nginx |
 
 ## 🚀 快速启动
@@ -55,6 +94,18 @@ docker compose up -d
 
 管理端入口：`http://localhost/admin/login`
 
+### 邮箱配置（可选）
+
+在 `docker-compose.yml` 的 `backend.environment` 中配置：
+
+```yaml
+SPRING_MAIL_HOST: smtp.qq.com
+SPRING_MAIL_PORT: 587
+SPRING_MAIL_USERNAME: your-email@qq.com
+SPRING_MAIL_PASSWORD: your-smtp-auth-code
+APP_MAIL_FROM: your-email@qq.com
+```
+
 ## 🐳 Docker 部署
 
 ```bash
@@ -69,14 +120,22 @@ docker compose logs -f
 
 # 停止服务
 docker compose down
+
+# 更新后端（重新编译 JAR 后）
+cd backend && mvn package -DskipTests && cd ..
+docker compose build backend && docker compose up -d backend
+
+# 更新前端（重新构建后）
+cd frontend && npm run build && cd ..
+docker compose build frontend && docker compose up -d frontend
 ```
 
 ### 容器架构
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Frontend    │     │   Backend    │     │   Database   │
-│   Nginx:80    │────▶│  :19999:8080 │────▶│ MariaDB:3307 │
+│   Frontend   │     │   Backend    │     │   Database   │
+│   Nginx:80   │────▶│  :19999:8080 │────▶│ MariaDB:3307 │
 │  Vue 3 SPA   │     │ Spring Boot  │     │              │
 └──────────────┘     └──────────────┘     └──────────────┘
 ```
@@ -88,29 +147,27 @@ Nginx 反向代理 `/api/` 请求到后端，前端直接访问 `http://localhos
 ```
 blog/
 ├── backend/                # Spring Boot 后端
-│   ├── src/main/java/
-│   │   ├── config/         # 配置类（JWT、CORS、安全）
-│   │   ├── controller/     # 控制器
-│   │   ├── dto/            # 数据传输对象
-│   │   ├── entity/         # 实体类
-│   │   ├── repository/     # 数据访问层
-│   │   └── service/        # 业务逻辑层
-│   └── Dockerfile
+│   └── src/main/java/com/blog/
+│       ├── config/         # 配置类（JWT、CORS、安全、异步）
+│       ├── controller/     # 控制器（文章、评论、订阅、排行等）
+│       ├── dto/            # 数据传输对象
+│       ├── entity/         # 实体类（文章、评论、订阅、排行等）
+│       ├── repository/     # JPA 数据访问层
+│       └── service/        # 业务逻辑层（含邮件服务、AI 摘要）
 │
 ├── frontend/               # Vue 3 前端
-│   ├── src/
-│   │   ├── api/            # API 请求封装
-│   │   ├── layouts/        # 布局组件（AdminLayout / PublicLayout）
-│   │   ├── views/          # 页面组件
-│   │   ├── stores/         # Pinia 状态管理
-│   │   ├── router/         # 路由配置
-│   │   └── composables/    # 组合式函数
-│   ├── nginx.conf
-│   └── Dockerfile
+│   └── src/
+│       ├── api/            # API 请求封装
+│       ├── layouts/        # 布局组件（Admin / Public）
+│       ├── views/          # 页面组件
+│       │   └── admin/      # 管理后台页面
+│       ├── stores/         # Pinia 状态管理
+│       ├── components/     # 公共组件（ArticleCard、DarkToggle）
+│       ├── router/         # 路由配置
+│       └── composables/    # 组合式函数（深色模式等）
 │
-├── db/
-│   └── init.sql            # 数据库初始化脚本
-│
+├── db/                     # 数据库初始化脚本
+├── docs/                   # 产品需求 & 设计规范文档
 ├── docker-compose.yml
 └── .gitignore
 ```
@@ -121,43 +178,101 @@ blog/
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/auth/login` | 登录 |
-| GET | `/api/articles` | 查看文章列表（分页） |
-| GET | `/api/articles/{id}` | 查看文章详情 |
-| GET | `/api/articles/archive` | 文章归档 |
-| GET | `/api/articles/search?keyword=` | 全文搜索 |
-| POST | `/api/articles/{id}/comments` | 添加评论 |
-| GET | `/api/feed` | RSS 订阅 |
+| POST | `/api/auth/login` | 管理员登录 |
+| GET | `/api/articles` | 文章列表（置顶优先） |
+| GET | `/api/articles/{id}` | 文章详情（自动增加阅读数） |
+| GET | `/api/articles/archive` | 文章归档（按年月分组） |
+| GET | `/api/articles/search?q=` | 全文搜索 |
+| GET | `/api/articles/{id}/comments` | 获取文章评论 |
+| POST | `/api/comments` | 提交评论 |
+| POST | `/api/subscribe` | 邮件订阅 |
+| GET | `/api/external-articles` | 精选阅读列表 |
+| GET | `/api/language-rankings` | 大模型排行榜 |
+| GET | `/api/rss` | RSS 订阅 |
 
-### 管理端接口（需认证）
+### 管理端接口（需 JWT 认证）
 
+#### 文章管理
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | `/api/admin/articles` | 文章列表 |
 | POST | `/api/admin/articles` | 创建文章 |
-| GET | `/api/admin/articles/search?page=&size=&keyword=&category=&tag=` | 文章搜索（全后端分页） |
 | PUT | `/api/admin/articles/{id}` | 更新文章 |
 | DELETE | `/api/admin/articles/{id}` | 删除文章 |
-| POST | `/api/admin/articles/batch/pin` | 批量置顶 |
-| POST | `/api/admin/articles/batch/unpin` | 批量取消置顶 |
-| POST | `/api/admin/articles/batch/delete` | 批量删除 |
+| GET | `/api/admin/articles/search?q=&page=&size=` | 文章搜索（后端分页） |
+| PUT | `/api/admin/articles/batch/pin` | 批量置顶/取消置顶 |
+| DELETE | `/api/admin/articles/batch` | 批量删除 |
+
+#### 评论管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | `/api/admin/comments` | 评论列表 |
+| GET | `/api/admin/comments/pending-count` | 待审核评论数 |
+| PUT | `/api/admin/comments/{id}/approve` | 通过评论 |
+| PUT | `/api/admin/comments/{id}/reject` | 拒绝评论 |
+| PUT | `/api/admin/comments/{id}/pin` | 置顶/取消置顶评论 |
 | DELETE | `/api/admin/comments/{id}` | 删除评论 |
+
+#### 订阅管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/admin/subscribers` | 订阅列表 |
+| DELETE | `/api/admin/subscribers/{id}` | 删除订阅 |
+
+#### 精选阅读管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/admin/external-articles` | 精选阅读管理列表 |
+| POST | `/api/admin/external-articles` | 添加精选文章 |
+| PUT | `/api/admin/external-articles/{id}` | 更新 |
+| DELETE | `/api/admin/external-articles/{id}` | 删除 |
+| POST | `/api/admin/external-articles/{id}/refetch` | 重新抓取 |
+
+#### 排行榜管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/admin/language-rankings` | 排行榜管理列表 |
+| POST | `/api/admin/language-rankings` | 添加排行榜数据 |
+| PUT | `/api/admin/language-rankings/{id}` | 更新 |
+| DELETE | `/api/admin/language-rankings/{id}` | 删除 |
+| POST | `/api/admin/language-rankings/reorder` | 拖拽排序 |
+
+#### 用户管理（仅管理员）
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | `/api/admin/users` | 用户列表 |
 | POST | `/api/admin/users` | 创建用户 |
 | PUT | `/api/admin/users/{id}` | 更新用户 |
 | DELETE | `/api/admin/users/{id}` | 删除用户 |
-| GET | `/api/admin/dashboard` | 数据看板 |
+
+#### 其他
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/admin/dashboard` | 数据看板概览 |
+| GET | `/api/auth/me` | 当前用户信息 |
 
 ## ⚙️ 环境变量
 
 后端支持通过环境变量配置：
 
 ```yaml
+# 数据库
 SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/blog
 SPRING_DATASOURCE_USERNAME: blog
 SPRING_DATASOURCE_PASSWORD: blog123
-APP_JWT_SECRET: your-jwt-secret-key
+
+# JWT
+APP_JWT_SECRET: your-jwt-secret-key-base64
+
+# 邮件（可选）
+SPRING_MAIL_HOST: smtp.qq.com
+SPRING_MAIL_PORT: 587
+SPRING_MAIL_USERNAME: your-email@qq.com
+SPRING_MAIL_PASSWORD: your-smtp-auth-code
+APP_MAIL_FROM: your-email@qq.com
+
+# 博客
+APP_BLOG_URL: http://localhost
 ```
 
 ## 📄 开源协议
