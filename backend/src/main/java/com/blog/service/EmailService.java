@@ -276,7 +276,8 @@ public class EmailService {
             return "（暂无摘要）";
         }
         String text = markdown
-                .replaceAll("```[\\s\\S]*?```", "")          // code blocks
+                .replace("\\n", "\n")                          // fix literal \n -> real newlines
+                .replaceAll("```[\\s\\S]*?```", "")            // code blocks
                 .replaceAll("!\\[[^\\]]*\\]\\([^)]*\\)", "")  // images
                 .replaceAll("\\[([^\\]]*)\\]\\([^)]*\\)", "$1") // links
                 .replaceAll("(?m)^#{1,6}\\s+", "")            // headers

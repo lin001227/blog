@@ -222,7 +222,8 @@ const renderedContent = computed(() => {
 // Check if content is plain markdown (no HTML tags) and needs conversion
 const renderedHtml = computed(() => {
   if (!article.value?.content) return ''
-  const content = article.value.content
+  // Fix literal \n characters -> real newlines (common when content is pasted)
+  const content = article.value.content.replace(/\\n/g, '\n')
   // If content doesn't contain HTML tags, treat as markdown
   if (!/<[a-z][\s\S]*>/i.test(content)) {
     return marked.parse(content)
