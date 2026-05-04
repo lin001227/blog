@@ -86,6 +86,11 @@ const routes = [
         component: () => import('../views/admin/CommentList.vue'),
       },
       {
+        path: 'subscribers',
+        name: 'SubscriberList',
+        component: () => import('../views/admin/SubscriberList.vue'),
+      },
+      {
         path: 'external-articles',
         name: 'ExternalArticleManager',
         component: () => import('../views/admin/ExternalArticleManager.vue'),

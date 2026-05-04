@@ -17,4 +17,6 @@ public interface SubscriberRepository extends JpaRepository<Subscriber, Long> {
 
     @Query("SELECT s.email FROM Subscriber s WHERE s.status = 'active'")
     List<String> findAllActiveEmails();
+
+    List<Subscriber> findAllByOrderByCreatedAtDesc();
 }

@@ -2,6 +2,7 @@ package com.blog.controller;
 
 import com.blog.dto.SubscribeRequest;
 import com.blog.dto.SubscribeResponse;
+import com.blog.entity.Subscriber;
 import com.blog.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,6 +25,22 @@ public class SubscriptionController {
             SubscribeResponse response = service.subscribe(request);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(Map.of("message", "🎉 订阅成功！感谢你的关注", "data", response));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/api/admin/subscribers")
+    public ResponseEntity<List<Subscriber>> getSubscribers() {
+        return ResponseEntity.ok(service.getSubscribers());
+    }
+
+    @DeleteMapping("/api/admin/subscribers/{id}")
+    public ResponseEntity<?> deleteSubscriber(@PathVariable Long id) {
+        try {
+            service.deleteSubscriber(id);
+            return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", e.getMessage()));

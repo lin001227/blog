@@ -17,6 +17,7 @@
             <el-menu-item index="/admin/language-rankings">排行</el-menu-item>
             <el-menu-item v-if="auth.isAdmin" index="/admin/users">用户</el-menu-item>
             <el-menu-item index="/admin/comments">评论</el-menu-item>
+            <el-menu-item index="/admin/subscribers">订阅</el-menu-item>
           </el-menu>
           <div class="mobile-menu-wrapper">
             <el-dropdown trigger="click" @command="mobileNav">
@@ -31,6 +32,7 @@
                   <el-dropdown-item command="/admin/language-rankings">排行</el-dropdown-item>
                   <el-dropdown-item v-if="auth.isAdmin" command="/admin/users">用户</el-dropdown-item>
                   <el-dropdown-item command="/admin/comments">评论</el-dropdown-item>
+                  <el-dropdown-item command="/admin/subscribers">订阅</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -95,6 +97,7 @@ const activeMenu = computed(() => {
   if (path.startsWith('/admin/language-rankings')) return '/admin/language-rankings'
   if (path.startsWith('/admin/users')) return '/admin/users'
   if (path.startsWith('/admin/comments')) return '/admin/comments'
+  if (path.startsWith('/admin/subscribers')) return '/admin/subscribers'
   return '/admin'
 })
 
