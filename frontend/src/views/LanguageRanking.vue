@@ -4,8 +4,8 @@
     <div class="ranking-header-inner">
       <h1 class="ranking-title">🤖 大模型排行榜</h1>
       <p class="ranking-subtitle">
-        基于 Chatbot Arena ELO 评分 · 2026 年 4 月
-        <el-tag size="small" effect="plain" class="source-tag">数据可编辑</el-tag>
+        基于社区 ELO 评分 · {{ currentMonth }}
+        <el-tag size="small" effect="plain" class="source-tag">每日自动更新</el-tag>
       </p>
     </div>
   </section>
@@ -104,10 +104,10 @@
       <el-card shadow="never" class="sidebar-card">
         <template #header><span class="sidebar-title">🔍 说明</span></template>
         <p class="sidebar-text">
-          本排行榜基于社区数据整理，管理员可在后台自定义模型名称、评分、趋势和颜色。
+          本排行榜基于大语言模型社区评分数据，每日自动更新。
         </p>
         <p class="sidebar-text" style="margin-top: 8px">
-          适合用来展示热门编程语言趋势，数据可随时更新。
+          数据综合反映当前大模型的能力排行，仅供参考。
           <router-link to="/" class="back-link">← 返回博客</router-link>
         </p>
       </el-card>

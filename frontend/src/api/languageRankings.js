@@ -23,3 +23,7 @@ export function deleteLanguageRanking(id) {
 export function reorderLanguageRankings(orderList) {
   return request.post('/admin/language-rankings/reorder', orderList)
 }
+
+export function triggerFetchRankings() {
+  return request.post('/admin/language-rankings/fetch')
+}

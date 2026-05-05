@@ -95,11 +95,6 @@ const routes = [
         name: 'ExternalArticleManager',
         component: () => import('../views/admin/ExternalArticleManager.vue'),
       },
-      {
-        path: 'language-rankings',
-        name: 'LanguageRankingManager',
-        component: () => import('../views/admin/LanguageRankingManager.vue'),
-      },
     ],
   },
 ]

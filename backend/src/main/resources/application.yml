@@ -33,3 +33,7 @@ app:
   blog:
     url: ${APP_BLOG_URL:http://localhost}
     name: 风屿 · 随笔
+
+  ranking:
+    enabled: true
+    cron: "0 0 6 * * ?"  # 每天凌晨6点更新

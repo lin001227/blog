@@ -3,6 +3,7 @@ package com.blog.controller;
 import com.blog.dto.LanguageRankingRequest;
 import com.blog.dto.LanguageRankingResponse;
 import com.blog.service.LanguageRankingService;
+import com.blog.service.LLMRankingFetchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,12 +18,35 @@ import java.util.Map;
 public class LanguageRankingController {
 
     private final LanguageRankingService service;
+    private final LLMRankingFetchService rankingFetchService;
 
     // ========== Public ==========
 
     @GetMapping("/api/language-rankings")
     public ResponseEntity<List<LanguageRankingResponse>> getPublicList() {
         return ResponseEntity.ok(service.getPublicList());
+    }
+
+    // ========== Fetch & Update ==========
+
+    @PostMapping("/api/admin/language-rankings/fetch")
+    public ResponseEntity<Map<String, Object>> triggerFetch() {
+        boolean success = rankingFetchService.fetchAndUpdate();
+        if (success) {
+            List<LanguageRankingResponse> data = service.getPublicList();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "排行榜更新成功",
+                    "count", data.size(),
+                    "data", data
+            ));
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "排行榜更新失败，请查看服务器日志"
+                    ));
+        }
     }
 
     // ========== Admin ==========
