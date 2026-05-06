@@ -153,6 +153,7 @@ Nginx 反向代理 `/api/` 请求到后端，前端直接访问 `http://localhos
 | 网络模式 | Standard (非镜像模式) |
 | WSL IP | `192.168.31.41` |
 | 宿主机 IP | `172.20.50.25` |
+| WSL 前端端口 | `80`（标准 HTTP，无需带端口号） |
 
 #### WSL 配置 (`/etc/wsl.conf`)
 
@@ -184,7 +185,7 @@ wsl --shutdown
 
 | 服务 | 容器名 | 内部端口 | 宿主机映射 | 说明 |
 |------|--------|----------|------------|------|
-| 前端 | `blog-frontend` | 80 | `0.0.0.0:8899→80` | 唯一对外暴露端口 |
+| 前端 | `blog-frontend` | 80 | `0.0.0.0:80→80` | 标准 HTTP 端口 |
 | 后端 | `blog-backend` | 8080 | 未映射 | 仅容器内网访问 |
 | 数据库 | `blog-db` | 3306 | 未映射 | 仅容器内网访问 |
 
@@ -194,10 +195,10 @@ wsl --shutdown
 
 | 场景 | 地址 |
 |------|------|
-| WSL 本机 | `http://localhost:8899/blog/` |
-| 宿主机 (Windows) | `http://172.20.50.25:8899/blog/` |
-| 局域网 (同 WiFi) | `http://192.168.31.41:8899/blog/` |
-| 管理后台 | `http://<IP>:8899/admin/login` |
+| WSL 本机 | `http://192.168.31.41/blog/` |
+| 宿主机 (Windows) | `http://172.20.50.25/blog/` |
+| 局域网 (同 WiFi) | `http://192.168.31.41/blog/` |
+| 管理后台 | `http://<IP>/admin/login` |
 
 ### 🔥 防火墙与网络排查
 
@@ -208,7 +209,7 @@ wsl --shutdown
    以管理员身份打开 Windows PowerShell，执行：
 
    ```powershell
-   New-NetFirewallRule -DisplayName "Docker Blog 8899" -Direction Inbound -LocalPort 8899 -Protocol TCP -Action Allow
+   New-NetFirewallRule -DisplayName "Docker Blog 80" -Direction Inbound -LocalPort 80 -Protocol TCP -Action Allow
    ```
 
 2. **WSL 未启用镜像网络**
@@ -220,8 +221,8 @@ wsl --shutdown
    ```bash
    # WSL 内检查
    docker ps -a --filter name=blog
-   ss -tlnp | grep 8899
-   curl -s -o /dev/null -w "%{http_code}" http://192.168.31.41:8899/
+    ss -tlnp | grep 80
+   curl -s -o /dev/null -w "%{http_code}" http://192.168.31.41/
    ```
 
 ## 📁 项目结构
