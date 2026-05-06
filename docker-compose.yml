@@ -11,8 +11,9 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "3307:3306"
+    # 仅内部访问，不暴露端口到宿主机
+    expose:
+      - "3306"
     healthcheck:
       test: ["CMD", "mariadb", "-u", "blog", "-pblog123", "-e", "SELECT 1"]
       interval: 5s
@@ -32,15 +33,16 @@ services:
       SPRING_DATASOURCE_PASSWORD: blog123
       APP_JWT_SECRET: "Y29vbC1ibG9nLWp3dC1zZWNyZXQta2V5LWZvci1ibG9nLWFwcC0yMDI2LXByb2R1Y3Rpb24t"
       APP_MAIL_FROM: 1262400013@qq.com
-      APP_BLOG_URL: http://localhost
+      APP_BLOG_URL: http://127.0.0.1
       SPRING_MAIL_HOST: smtp.qq.com
       SPRING_MAIL_PORT: 587
       SPRING_MAIL_USERNAME: 1262400013@qq.com
       SPRING_MAIL_PASSWORD: qauswnreuxwkjbbb
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
-    ports:
-      - "19999:8080"
+    # 仅内部访问，不暴露端口到宿主机
+    expose:
+      - "8080"
 
   frontend:
     build: ./frontend
