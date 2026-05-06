@@ -142,6 +142,54 @@ docker compose build frontend && docker compose up -d frontend
 
 Nginx 反向代理 `/api/` 请求到后端，前端直接访问 `http://localhost` 即可。
 
+### 📄 Nginx 配置详情
+
+当前部署使用的 Nginx 配置（`frontend/nginx.conf`）：
+
+```nginx
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # 兼容不带斜杠的访问：/blog -> /blog/
+    rewrite ^/blog$ /blog/ last;
+
+    # /blog/api 反向代理到后端（优先匹配）
+    location /blog/api/ {
+        proxy_pass http://backend:8080/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # /blog 前端静态文件
+    location ^~ /blog/ {
+        alias /usr/share/nginx/html/;
+        try_files $uri $uri/ /blog/index.html;
+        index index.html;
+    }
+
+    # 缓存静态资源
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2)$ {
+        expires 7d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript image/svg+xml;
+}
+```
+
+**关键配置说明：**
+- `rewrite ^/blog$ /blog/ last;` — 兼容 `/blog` 和 `/blog/` 两种访问方式，不触发浏览器跳转
+- `location /blog/api/` — 将 API 请求反向代理到 Spring Boot 后端
+- `location ^~ /blog/` — SPA 路由回退，所有前端路由由 `index.html` 处理
+- 静态资源（图片/CSS/JS）缓存 7 天，减少重复加载
+- Gzip 压缩所有文本类型响应，提升传输速度
+
 ### 🖥️ WSL 部署配置
 
 #### 当前部署环境
