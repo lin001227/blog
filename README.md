@@ -142,6 +142,88 @@ docker compose build frontend && docker compose up -d frontend
 
 Nginx 反向代理 `/api/` 请求到后端，前端直接访问 `http://localhost` 即可。
 
+### 🖥️ WSL 部署配置
+
+#### 当前部署环境
+
+| 组件 | 值 |
+|------|------|
+| 环境 | Arch Linux (WSL2) |
+| WSL 发行版 | Arch Linux with systemd |
+| 网络模式 | Standard (非镜像模式) |
+| WSL IP | `192.168.31.41` |
+| 宿主机 IP | `172.20.50.25` |
+
+#### WSL 配置 (`/etc/wsl.conf`)
+
+```ini
+[boot]
+systemd=true
+```
+
+#### Windows 侧配置（可选，解决局域网访问问题）
+
+如果局域网设备（手机/平板）无法通过 Windows IP 访问，需要启用 **WSL 镜像网络模式**：
+
+在 Windows 用户目录创建或编辑 `%USERPROFILE%\.wslconfig`：
+
+```ini
+[wsl2]
+networkingMode=mirrored
+```
+
+然后重启 WSL（在 Windows PowerShell 中执行）：
+
+```powershell
+wsl --shutdown
+```
+
+### 🔧 生产环境端口映射
+
+当前部署使用以下端口映射（与开发环境 `docker-compose up` 默认不同）：
+
+| 服务 | 容器名 | 内部端口 | 宿主机映射 | 说明 |
+|------|--------|----------|------------|------|
+| 前端 | `blog-frontend` | 80 | `0.0.0.0:8899→80` | 唯一对外暴露端口 |
+| 后端 | `blog-backend` | 8080 | 未映射 | 仅容器内网访问 |
+| 数据库 | `blog-db` | 3306 | 未映射 | 仅容器内网访问 |
+
+> **注意**：生产部署中后端和数据库不暴露端口到宿主机，仅通过 Docker 内部网络通信。
+
+### 📡 访问地址
+
+| 场景 | 地址 |
+|------|------|
+| WSL 本机 | `http://localhost:8899/blog/` |
+| 宿主机 (Windows) | `http://172.20.50.25:8899/blog/` |
+| 局域网 (同 WiFi) | `http://192.168.31.41:8899/blog/` |
+| 管理后台 | `http://<IP>:8899/admin/login` |
+
+### 🔥 防火墙与网络排查
+
+如果局域网设备无法访问：
+
+1. **Windows 防火墙拦截**（最常见原因）
+
+   以管理员身份打开 Windows PowerShell，执行：
+
+   ```powershell
+   New-NetFirewallRule -DisplayName "Docker Blog 8899" -Direction Inbound -LocalPort 8899 -Protocol TCP -Action Allow
+   ```
+
+2. **WSL 未启用镜像网络**
+
+   参考上方 Windows 侧配置，启用 `networkingMode=mirrored`。
+
+3. **验证服务状态**
+
+   ```bash
+   # WSL 内检查
+   docker ps -a --filter name=blog
+   ss -tlnp | grep 8899
+   curl -s -o /dev/null -w "%{http_code}" http://192.168.31.41:8899/
+   ```
+
 ## 📁 项目结构
 
 ```
